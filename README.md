@@ -1,1 +1,1 @@
-# paralell-algorithm
+# ParallelAlgoCompendium
