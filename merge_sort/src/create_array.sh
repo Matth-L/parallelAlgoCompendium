@@ -29,5 +29,3 @@ touch array.txt ; echo -n $1 > array.txt
 for i in $(seq 1 $1); do
     echo -n " $((RANDOM % 100))" >> array.txt
 done
-
-echo "" >> array.txt

@@ -1,13 +1,15 @@
 all : 
-	# ./create_array 16
-	gcc sequential_merge_sort.c -o sequential_merge_sort -g 
-	gcc pthread_merge_sort.c -o pthread_merge_sort -lpthread -g -lm
+	mkdir -p bin
+	./src/create_array.sh 16
+	gcc src/sequential_merge_sort.c -o bin/sequential_merge_sort -g 
+	gcc src/pthread_merge_sort.c -o bin/pthread_merge_sort -lpthread -g -lm
 
 style : 
-	astyle -A1 *.c 
+	astyle -A1 *.c --recursive
 	@if ls *.h >/dev/null 2>&1; then astyle -A1 *.h; fi
-	rm -fv *.orig
+	find . -type f -name "*.orig" -delete
 
 clean :  
-	rm -fv sequential_merge_sort pthread_merge_sort
-	rm -fv array.txt
+	rm -rvf bin
+	rm -rvf *.txt
+

@@ -84,27 +84,44 @@ void tri_fusion(int *tab, int n)
 
 int main(int argc, char *argv[])
 {
+    /**********************************************
+     * reading the file  + init the array
+    ***********************************************/
+    FILE *f = fopen("array.txt", "r");
+    if (f == NULL)
+    {
+        perror("Error fopen");
+        exit(EXIT_FAILURE);
+    }
 
-    // not generic, just to test
-    int array_size = 16;
-    int T[array_size];
+    int c, array_size, count = 0;
+    fscanf(f, "%d", &array_size);
+    int *T = malloc(array_size * sizeof(int));
 
+    while(!feof (f))
+    {
+        fscanf(f, "%d", &c);
+        T[count] = c;
+        count++;
+    }
+
+    fclose(f);
+    
     srand(time(NULL));
 
-    for (int i = 0; i < 16; i++)
-    {
-        T[i] = rand() % 100;
-    }
+    /**********************************************
+     * sorting
+    ***********************************************/
 
     printf("Before sorting:\n");
     pretty_print_array(T, 16);
     fflush(stdout);
 
-    tri_fusion(T, 16);
+    tri_fusion(T, array_size);
 
     printf("After sorting:\n");
     pretty_print_array(T, 16);
     fflush(stdout);
 
-    return EXIT_SUCCESS;
+    exit(EXIT_SUCCESS);
 }
