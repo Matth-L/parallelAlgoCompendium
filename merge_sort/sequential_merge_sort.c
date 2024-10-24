@@ -71,14 +71,13 @@ void tri_fusion(int *tab, int n)
     int *V = malloc((n - mid) * sizeof(int));
 
     for (int i = 0; i < mid; i++)
-    {
         U[i] = tab[i];
-        V[i] = tab[i + mid];
-    }
+    for (int i = mid; i < n; i++)
+        V[i - mid] = tab[i];
 
-    tri_fusion(U, n / 2);
-    tri_fusion(V, n / 2);
-    fusion(U, n / 2, V, n / 2, tab);
+    tri_fusion(U, mid);
+    tri_fusion(V, (n - mid));
+    fusion(U, mid, V, (n - mid), tab);
     free(U);
     free(V);
 }
@@ -90,7 +89,6 @@ int main(int argc, char *argv[])
     int array_size = 16;
     int T[array_size];
 
-    // seed for random number generation
     srand(time(NULL));
 
     for (int i = 0; i < 16; i++)

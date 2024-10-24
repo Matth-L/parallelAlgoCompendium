@@ -1,6 +1,6 @@
 /*******************************************************************************
  * @file pthread_merge_sort.c
- * @author 
+ * @author
  * @brief
  *
  ******************************************************************************/
@@ -10,6 +10,12 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <pthread.h>
+
+typedef struct Thread_data
+{
+    int n;
+    int *tab;
+} data_t;
 
 void pretty_print_array(int *tab, int n)
 {
@@ -26,7 +32,7 @@ void pretty_print_array(int *tab, int n)
 }
 
 // should stay sequential
-void fusion(int *U, int n, int *V, int m, int *T)
+void fusion(data_t u, data_t v, int *T)
 {
 
     // procedure fusion(U[0..n-1],V[0..m-1],T[0..m-1+n-1])
@@ -38,24 +44,28 @@ void fusion(int *U, int n, int *V, int m, int *T)
     // sinon
     // T[k]=V[j++]
     int i = 0, j = 0;
-    U[n] = INT_MAX;
-    V[m] = INT_MAX;
+    int n = u.n;
+    int m = v.n;
+    u.tab[n] = INT_MAX;
+    v.tab[m] = INT_MAX;
     for (int k = 0; k < m + n; k++)
     {
-        if (U[i] < V[j])
+        if (u.tab[i] < v.tab[j])
         {
-            T[k] = U[i++];
+            T[k] = u.tab[i++];
         }
         else
         {
-            T[k] = V[j++];
+            T[k] = v.tab[j++];
         }
     }
 }
 
-// should use pthread
-void tri_fusion(int *tab, int n)
+// changed the cast to match pthread
+void *tri_fusion(void *arg)
 {
+    data_t *t = (data_t *)arg;
+
     // procedure tri fusion(T[1..n])
     // si n est petit adhoc(T[1..n])
     // sinon
@@ -65,52 +75,55 @@ void tri_fusion(int *tab, int n)
     // tri fusion(V)
     // fusion(U,V,T)
 
-    if (n < 2)
-    {
-        return;
-    }
+    if (t->n < 2)
+        return NULL;
 
-    int mid = n / 2;
-    int *U = malloc(mid * sizeof(int));
-    int *V = malloc((n - mid) * sizeof(int));
+    int mid = t->n / 2;
+    data_t u = {mid, malloc(mid * sizeof(int))};
+    data_t v = {t->n - mid, malloc((t->n - mid) * sizeof(int))};
 
     for (int i = 0; i < mid; i++)
-    {
-        U[i] = tab[i];
-        V[i] = tab[i + mid];
-    }
+        u.tab[i] = t->tab[i];
+    for (int i = mid; i < t->n; i++)
+        v.tab[i - mid] = t->tab[i];
 
-    tri_fusion(U, n / 2);
-    tri_fusion(V, n / 2);
-    fusion(U, n / 2, V, n / 2, tab);
-    free(U);
-    free(V);
+    // spawn thread
+    pthread_t child;
+    pthread_create(&child, NULL, (void *(*)(void *))tri_fusion, &u);
+    tri_fusion(&v);
+
+    pthread_join(child, NULL);
+
+    fusion(u, v, t->tab);
+
+    free(u.tab);
+    free(v.tab);
 }
 
 int main(int argc, char *argv[])
 {
 
     // not generic, just to test
-    int array_size = 16;
-    int T[array_size];
+    data_t init_data = {16, malloc(init_data.n * sizeof(int))};
 
-    // seed for random number generation
     srand(time(NULL));
 
     for (int i = 0; i < 16; i++)
     {
-        T[i] = rand() % 100;
+        init_data.tab[i] = rand() % 100;
     }
 
     printf("Before sorting:\n");
-    pretty_print_array(T, 16);
+    pretty_print_array(init_data.tab, 16);
     fflush(stdout);
 
-    tri_fusion(T, 16);
+    tri_fusion(&init_data);
 
     printf("After sorting:\n");
-    pretty_print_array(T, 16);
+    pretty_print_array(init_data.tab, 16);
     fflush(stdout);
+
+    free(init_data.tab);
 
     return EXIT_SUCCESS;
 }

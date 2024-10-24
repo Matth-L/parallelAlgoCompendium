@@ -1,5 +1,5 @@
 all : 
-	./create_array 16
+	# ./create_array 16
 	gcc sequential_merge_sort.c -o sequential_merge_sort -g 
 	gcc pthread_merge_sort.c -o pthread_merge_sort -lpthread -g -lm
 
