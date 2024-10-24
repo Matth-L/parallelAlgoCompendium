@@ -66,9 +66,9 @@ void tri_fusion(int *tab, int n)
         return;
     }
 
-    int *U = malloc(n / 2 * sizeof(int));
-    int *V = malloc(n / 2 * sizeof(int));
     int mid = n / 2;
+    int *U = malloc(mid * sizeof(int));
+    int *V = malloc((n - mid) * sizeof(int));
 
     for (int i = 0; i < mid; i++)
     {
