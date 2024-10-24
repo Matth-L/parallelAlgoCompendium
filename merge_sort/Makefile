@@ -1,4 +1,5 @@
 all : 
+	./create_array 16
 	gcc sequential_merge_sort.c -o sequential_merge_sort -g 
 	gcc pthread_merge_sort.c -o pthread_merge_sort -lpthread -g -lm
 
@@ -9,3 +10,4 @@ style :
 
 clean :  
 	rm -fv sequential_merge_sort pthread_merge_sort
+	rm -fv array.txt
