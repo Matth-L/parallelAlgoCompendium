@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <omp.h>
 
 void pretty_print_array(int *tab, int n)
 {
@@ -117,10 +118,14 @@ int main(int argc, char *argv[])
     pretty_print_array(T, 16);
     fflush(stdout);
 
+    start = omp_get_wtime();
     tri_fusion(T, array_size);
+    stop = omp_get_wtime();
 
     printf("After sorting:\n");
     pretty_print_array(T, 16);
+    printf("\nTime: %g\n",stop-start);
+
     fflush(stdout);
 
     exit(EXIT_SUCCESS);
