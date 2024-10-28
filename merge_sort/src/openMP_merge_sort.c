@@ -66,7 +66,7 @@ void fusion(int *U, int n, int *V, int m, int *T)
     {
         if (U[i] < V[j])
         {
-            
+
             T[k] = U[i++];
         }
         else
@@ -103,7 +103,7 @@ void tri_fusion(int *tab, int n)
     #pragma omp parallel for
     for (int i = mid; i < n; i++)
         V[i - mid] = tab[i];
-    
+
     #pragma omp parallel sections
     {
         #pragma omp section
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
     }
 
     fclose(f);
-    
+
     srand(time(NULL));
 
     /**********************************************

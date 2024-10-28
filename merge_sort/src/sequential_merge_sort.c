@@ -102,15 +102,13 @@ void tri_fusion(int *tab, int n)
     tri_fusion(U, mid);
     tri_fusion(V, (n - mid));
     fusion(U, mid, V, (n - mid), tab);
-    free(U);
-    free(V);
 }
 
 int main(int argc, char *argv[])
 {
     /**********************************************
      * reading the file  + init the array
-    ***********************************************/
+     ***********************************************/
     FILE *f = fopen(argv[1], "r");
     if (f == NULL)
     {
@@ -122,7 +120,7 @@ int main(int argc, char *argv[])
     fscanf(f, "%d", &array_size);
     int *T = malloc(array_size * sizeof(int));
 
-    while(!feof (f))
+    while (!feof(f))
     {
         fscanf(f, "%d", &c);
         T[count] = c;
@@ -130,15 +128,15 @@ int main(int argc, char *argv[])
     }
 
     fclose(f);
-    
+
     srand(time(NULL));
 
     /**********************************************
      * sorting
-    ***********************************************/
+     ***********************************************/
 
     printf("Before sorting:\n");
-    pretty_print_array(T, 16);
+    pretty_print_array(T, array_size);
     fflush(stdout);
 
     int start = omp_get_wtime();
@@ -146,10 +144,32 @@ int main(int argc, char *argv[])
     int stop = omp_get_wtime();
 
     printf("After sorting:\n");
-    pretty_print_array(T, 16);
-    printf("\nTime: %g\n",stop-start);
+    pretty_print_array(T, array_size);
+    printf("\nTime: %g s\n", stop - start);
 
     fflush(stdout);
+
+    /**********************************************
+     * writing the sorted array in a file
+     ***********************************************/
+
+    char output_filename[50];
+    snprintf(output_filename, sizeof(output_filename),
+             "sorted_array_%d.txt", array_size);
+
+    FILE *f_out = fopen(output_filename, "w");
+    if (f_out == NULL)
+    {
+        perror("Error fopen");
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < array_size; i++)
+    {
+        fprintf(f_out, "%d\n", T[i]);
+    }
+
+    fclose(f_out);
+    free(T);
 
     exit(EXIT_SUCCESS);
 }

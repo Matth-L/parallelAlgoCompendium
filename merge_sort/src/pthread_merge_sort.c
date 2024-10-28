@@ -14,7 +14,7 @@
 
 typedef struct Thread_data
 {
-    int n; 
+    int n;
     int *tab;
 } data_t;
 
