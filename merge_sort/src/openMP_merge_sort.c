@@ -99,6 +99,8 @@ void tri_fusion(int *tab, int n)
 
 int main(int argc, char *argv[])
 {
+    void omp_set_num_threads (int atoi(argv[1]));
+
     /**********************************************
      * reading the file  + init the array
     ***********************************************/
