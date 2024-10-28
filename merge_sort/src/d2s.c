@@ -151,11 +151,7 @@ int main(int argc, char *argv[])
      * writing the sorted array in a file
      ***********************************************/
 
-    char output_filename[50];
-    snprintf(output_filename, sizeof(output_filename),
-             "sorted_array_%d.txt", array_size);
-
-    FILE *f_out = fopen(output_filename, "w");
+    FILE *f_out = fopen(argv[3], "w");
     if (f_out == NULL)
     {
         perror("Error fopen");

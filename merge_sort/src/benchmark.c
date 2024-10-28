@@ -199,6 +199,7 @@ void tri_fusion_openmp(int *tab, int n)
     fusion_openmp(U, mid, V, (n - mid), tab);
 }
 
+
 int main(int argc, char *argv[])
 {
     /**********************************************
@@ -230,6 +231,8 @@ int main(int argc, char *argv[])
     double time_sequential;
     double tab_of_time_phtread[7];
     double tab_of_time_openmp[7];
+    double tab_of_time_openmp2[7];
+
     int nb_threads[7] = {1, 2, 4, 8, 16, 24, 48};
 
     /**********************************************
@@ -280,31 +283,8 @@ int main(int argc, char *argv[])
         tab_of_time_openmp[i] /= n_try;
     }
 
-    // /**********************************************
-    //  * average of tab
-    //  ***********************************************/
-
-    // double average_pthread = 0;
-    // double average_openmp = 0;
-
-    // // sum of ligne 
-    // for (int i = 0; i < n_try; i++)
-    // {
-    //     average_sequential += tab_of_time_sequential[i];
-    // }
-
     printf("Average time for sequential: %f\n", time_sequential);
-
-    // int avg_pthread[7];
-    // int avg_openmp[7];
-    // for (int i =0;i<7;i++){
-    //     for(int j=0;j<n_try;j++){
-    //         avg_pthread[i] += tab_of_time_phtread[i][j];
-    //         avg_openmp[i] += tab_of_time_openmp[i][j];
-    //     }   
-    // }
-
-     
+   
     printf("Average time for pthread: ");
     for (int i = 0; i < 7; i++)
     {
@@ -316,6 +296,7 @@ int main(int argc, char *argv[])
     {
         printf("%f ", tab_of_time_openmp[i]);
     }
+
     printf("\n");
 
 }

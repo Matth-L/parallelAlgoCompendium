@@ -1,12 +1,26 @@
 /*******************************************************************************
- * @file sequential_merge_sort.c
- * @brief Parallel Merge Sort using OpenMP
+ * @file openMP_merge_sort.c
+ * @author
+ * @brief
+ *
  ******************************************************************************/
-#include <limits.h>
+#include <time.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <limits.h>
 #include <omp.h>
+
+int max_threads;
+int depth = 0;
+
+int log2floor(int n)
+{
+    if (n == 0 || n == 1)
+        return 0;
+
+    return 1 + log2floor(n >> 1);
+}
 
 void pretty_print_array(int *tab, int n)
 {
@@ -45,8 +59,17 @@ void pretty_print_array(int *tab, int n)
     printf("]\n");
 }
 
-void fusion(int *U, int n, int *V, int m, int *T)
+void fusion_openmp(int *U, int n, int *V, int m, int *T)
 {
+
+    // procedure fusion_openmp(U[0..n-1],V[0..m-1],T[0..m-1+n-1])
+    // i=j=0
+    // U[n]=V[m]=∞
+    // pour k=0 `a m-1+n-1 faire
+    // si U[i]<V[j] alors
+    // T[k]=U[i++]
+    // sinon
+    // T[k]=V[j++]
     int i = 0, j = 0;
     U[n] = INT_MAX;
     V[m] = INT_MAX;
@@ -54,6 +77,7 @@ void fusion(int *U, int n, int *V, int m, int *T)
     {
         if (U[i] < V[j])
         {
+
             T[k] = U[i++];
         }
         else
@@ -63,16 +87,16 @@ void fusion(int *U, int n, int *V, int m, int *T)
     }
 }
 
-void tri_fusion(int *tab, int n)
+void tri_fusion_openmp(int *tab, int n)
 {
     if (n < 2)
-    {
         return;
-    }
 
     int mid = n / 2;
     int *U = malloc((mid + 1) * sizeof(int));
     int *V = malloc((n - mid + 1) * sizeof(int));
+
+    depth++;
 
     for (int i = 0; i < mid; i++)
     {
@@ -80,30 +104,28 @@ void tri_fusion(int *tab, int n)
         V[i] = tab[i+mid];
     }
 
-    #pragma omp taskgroup
+    if (depth < log2floor(max_threads)) // Limit threading to top 3 levels
     {
-        #pragma omp task shared(U) untied if (n >= (1<<14))
-        tri_fusion(U, mid);
-        #pragma omp task shared(V) untied if (n >= (1<<14))
-        tri_fusion(V, (n - mid));
-        #pragma omp taskyield
+#pragma omp parallel sections
+        {
+#pragma omp section
+            tri_fusion_openmp(U, mid);
+#pragma omp section
+            tri_fusion_openmp(V, (n - mid));
+        }
+    }
+    else
+    {
+        tri_fusion_openmp(U, mid);
+        tri_fusion_openmp(V, (n - mid));
     }
 
-    fusion(U, mid, V, (n - mid), tab);
-
-    free(U);
-    free(V);
+    fusion_openmp(U, mid, V, (n - mid), tab);
 }
 
 int main(int argc, char *argv[])
 {
-    srand(time(NULL));
-
-    /**********************************************
-     * parsing thread count
-     ***********************************************/
-    int num_threads = atoi(argv[1]);
-    omp_set_num_threads(num_threads);
+    omp_set_num_threads(atoi(argv[1]));
 
     /**********************************************
      * reading the file  + init the array
@@ -129,30 +151,32 @@ int main(int argc, char *argv[])
 
     fclose(f);
 
+    srand(time(NULL));
+
     /**********************************************
      * sorting
      ***********************************************/
+
+    printf("Before sorting:\n");
+    pretty_print_array(T, array_size);
+    fflush(stdout);
+
     double start = omp_get_wtime();
-    #pragma omp parallel
-    {
-        #pragma omp single
-        tri_fusion(T, array_size);
-    }
+    tri_fusion_openmp(T, array_size);
     double stop = omp_get_wtime();
 
     printf("After sorting:\n");
     pretty_print_array(T, array_size);
-    printf("\n\033[0;31mSequential merge sort: with array size of %i\033[0m", array_size);
+    printf("\n\033[0;31mOpenMP merge sort: with array size of %i\033[0m",
+           array_size);
     printf("\033[0;32m\nTime: %g s\n\033[0m", stop - start);
     fflush(stdout);
 
     /**********************************************
      * writing the sorted array in a file
      ***********************************************/
-    char output_filename[50];
-    snprintf(output_filename, sizeof(output_filename), "sorted_array_%d.txt", array_size);
-
-    FILE *f_out = fopen(output_filename, "w");
+    
+    FILE *f_out = fopen(argv[3], "w");
     if (f_out == NULL)
     {
         perror("Error fopen");
