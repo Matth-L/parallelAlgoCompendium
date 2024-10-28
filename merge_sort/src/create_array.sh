@@ -27,9 +27,11 @@ if [ -f $filename ]; then
 fi
 
 ################ Création du fichier ###############
-mkdir -p $output_dir
-touch $filename ; echo -n $1 > $filename
+mkdir -p "$output_dir"
+sequence=""
 
-for i in $(seq 1 $1); do
-    echo -n " $((RANDOM % 10000))" >> $filename
+for ((i = 1; i <= $1; i++)); do
+    sequence+=" $((RANDOM % 10000))"
 done
+
+echo -n "$1$sequence" > "$filename"

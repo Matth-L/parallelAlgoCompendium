@@ -11,6 +11,7 @@
 #include <semaphore.h>
 
 sem_t thread_semaphore;
+int max_threads;
 
 typedef struct Thread_data
 {
@@ -19,12 +20,12 @@ typedef struct Thread_data
     int depth; // New depth parameter to control threading depth
 } data_t;
 
-
 int log2floor(int n)
 {
-    if (n==0 || n==1) return 0;
+    if (n == 0 || n == 1)
+        return 0;
 
-    return 1 + log2floor(n>>1);
+    return 1 + log2floor(n >> 1);
 }
 
 void pretty_print_array(int *tab, int n)
@@ -100,7 +101,7 @@ void *tri_fusion(void *arg)
         v.tab[i - mid] = t->tab[i];
 
     pthread_t child;
-    if (t->depth < 3) // Limit threading to top 3 levels
+    if (t->depth < log2floor(max_threads)) // Limit threading to top 3 levels
     {
         sem_wait(&thread_semaphore);
         if (pthread_create(&child, NULL, tri_fusion, &u) != 0)
@@ -133,7 +134,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    int max_threads = atoi(argv[1]);
+    max_threads = atoi(argv[1]);
     sem_init(&thread_semaphore, 0, max_threads);
 
     FILE *f = fopen(argv[2], "r");
@@ -159,13 +160,16 @@ int main(int argc, char *argv[])
     printf("Before sorting:\n");
     pretty_print_array(init_data.tab, array_size);
 
-    int start = omp_get_wtime();
+    double start = omp_get_wtime();
     tri_fusion(&init_data);
-    int stop = omp_get_wtime();
+    double stop = omp_get_wtime();
 
     printf("After sorting:\n");
     pretty_print_array(init_data.tab, array_size);
-    printf("\nTime: %g\n", stop - start);
+    printf("\033[0;31mPthread merge sort: with array size of %i\033[0m",
+           array_size);
+    printf("\033[0;32m\nTime: %g s\n\033[0m", stop - start);
+    fflush(stdout);
 
     free(init_data.tab);
     sem_destroy(&thread_semaphore);

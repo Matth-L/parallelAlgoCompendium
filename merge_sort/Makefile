@@ -15,7 +15,7 @@ compile:
 
 array:
 	@echo "creating array";
-	for size in 100 1000 10000 100000 1000000; do \
+	for size in 1000000 ; do \
 		./src/create_array.sh $$size results; \
 	done
 
@@ -35,7 +35,7 @@ benchmark :
 # running sequential merge sort
 
 	@echo "Running sequential merge sort";
-	for size in 100 1000 10000 100000 1000000; do \
+	for size in 1000000 100000000; do \
 		./bin/sequential_merge_sort ./results/unsorted_array_$$size.txt; \
 	done
 

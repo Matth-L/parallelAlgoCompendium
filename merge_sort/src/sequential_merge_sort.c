@@ -136,10 +136,6 @@ int main(int argc, char *argv[])
      * sorting
      ***********************************************/
 
-    printf("Before sorting:\n");
-    pretty_print_array(T, array_size);
-    fflush(stdout);
-
     double start = omp_get_wtime();
     tri_fusion(T, array_size);
     double stop = omp_get_wtime();

@@ -161,7 +161,6 @@ int main(int argc, char *argv[])
     tri_fusion(T, array_size);
     double stop = omp_get_wtime();
 
-    printf("\033[0;32m\nTime: %g s\n\033[0m", stop - start);
     printf("After sorting:\n");
     printf("\n\033[0;31mOpenMP merge sort: with array size of %i\033[0m",
            array_size);
