@@ -5,11 +5,11 @@ dir :
 	mkdir -p bin
 	mkdir -p results
 
-compile: 
+compile: ./src/benchmark.c
 	gcc ./src/sequential_merge_sort.c -o ./bin/sequential_merge_sort -lm -g -lgomp
 	gcc ./src/pthread_merge_sort.c -o ./bin/pthread_merge_sort -lm -lpthread -g -lgomp
 	gcc ./src/openMP_merge_sort.c -o ./bin/openMP_merge_sort -lm -fopenmp -g -lgomp
-	gcc .
+	gcc ./src/benchmark.c -o ./bin/benchmark -lm -g -lgomp
 
 array:
 	@echo "creating array";
