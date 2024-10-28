@@ -99,7 +99,7 @@ void tri_fusion(int *tab, int n)
 
 int main(int argc, char *argv[])
 {
-    void omp_set_num_threads (int atoi(argv[1]));
+    omp_set_num_threads (atoi(argv[1]));
 
     /**********************************************
      * reading the file  + init the array
@@ -134,9 +134,9 @@ int main(int argc, char *argv[])
     pretty_print_array(T, 16);
     fflush(stdout);
 
-    start = omp_get_wtime();
+    int start = omp_get_wtime();
     tri_fusion(T, array_size);
-    stop = omp_get_wtime();
+    int stop = omp_get_wtime();
 
     printf("After sorting:\n");
     pretty_print_array(T, 16);

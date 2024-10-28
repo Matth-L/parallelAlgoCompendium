@@ -118,9 +118,9 @@ int main(int argc, char *argv[])
     pretty_print_array(init_data.tab, 16);
     fflush(stdout);
 
-    start = omp_get_wtime();
+    int start = omp_get_wtime();
     tri_fusion(&init_data);
-    stop = omp_get_wtime();
+    int stop = omp_get_wtime();
 
     printf("After sorting:\n");
     pretty_print_array(init_data.tab, 16);

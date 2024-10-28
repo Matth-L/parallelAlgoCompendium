@@ -2,8 +2,8 @@
 
 # Objectif : Créer un fichier, avec n suivie de n élement entiers aléatoires, 
 # chaque élement est séparé d'un espace
-# input : n
-# output : array.txt
+# input : n (la taille du tableau)
+# output : unsorted_array.txt  (un tableau non trié de taille N)
 
 #################### Vérification  #####################
 
@@ -18,14 +18,14 @@ fi
 
 ################ Suppression de l'ancien fichier ###############
 
-if [ -f array.txt ]; then
-    rm array.txt
+if [ -f unsorted_array.txt ]; then
+    rm unsorted_array.txt 
 fi
 
 ################ Création du fichier ###############
 
-touch array.txt ; echo -n $1 > array.txt
+touch unsorted_array.txt; echo -n $1 > unsorted_array.txt
 
 for i in $(seq 1 $1); do
-    echo -n " $((RANDOM % 100))" >> array.txt
+    echo -n " $((RANDOM % 100))" >> unsorted_array.txt
 done
