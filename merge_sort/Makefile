@@ -22,4 +22,5 @@ style :
 	@if ls *.h >/dev/null 2>&1; then astyle -A1 *.h; fi
 	find . -type f -name "*.orig" -delete
 
-
+clean :
+	rm -rf bin

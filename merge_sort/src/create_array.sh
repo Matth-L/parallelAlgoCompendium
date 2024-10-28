@@ -31,7 +31,7 @@ mkdir -p "$output_dir"
 sequence=""
 
 for ((i = 1; i <= $1; i++)); do
-    sequence+=" $((RANDOM % 10000))"
+    sequence+=" $((RANDOM % 10000000))"
 done
 
 echo -n "$1$sequence" > "$filename"

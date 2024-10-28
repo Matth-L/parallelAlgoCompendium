@@ -64,7 +64,7 @@ void pretty_print_array(int *tab, int n)
     printf("]\n");
 }
 
-void fusion(data_t u, data_t v, int *T)
+void fusion_pthread(data_t u, data_t v, int *T)
 {
     int i = 0, j = 0;
     int n = u.n;
@@ -84,7 +84,7 @@ void fusion(data_t u, data_t v, int *T)
     }
 }
 
-void *tri_fusion(void *arg)
+void *tri_fusion_pthread(void *arg)
 {
     data_t *t = (data_t *)arg;
     if (t->n < 2)
@@ -105,21 +105,21 @@ void *tri_fusion(void *arg)
     pthread_t child;
     if (t->depth < log2floor(max_threads)) // Limit threading to top 3 levels
     {
-        if (pthread_create(&child, NULL, tri_fusion, &u) != 0)
+        if (pthread_create(&child, NULL, tri_fusion_pthread, &u) != 0)
         {
             perror("pthread_create error");
             exit(EXIT_FAILURE);
         }
-        tri_fusion(&v);
+        tri_fusion_pthread(&v);
         pthread_join(child, NULL);
     }
     else // Sequential merge sort for deeper recursion
     {
-        tri_fusion(&u);
-        tri_fusion(&v);
+        tri_fusion_pthread(&u);
+        tri_fusion_pthread(&v);
     }
 
-    fusion(u, v, t->tab);
+    fusion_pthread(u, v, t->tab);
 
     free(u.tab);
     free(v.tab);
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
     pretty_print_array(init_data.tab, array_size);
 
     double start = omp_get_wtime();
-    tri_fusion(&init_data);
+    tri_fusion_pthread(&init_data);
     double stop = omp_get_wtime();
 
     printf("After sorting:\n");

@@ -47,7 +47,7 @@ void pretty_print_array(int *tab, int n)
     printf("]\n");
 }
 
-void fusion(int *U, int n, int *V, int m, int *T)
+void fusion_sequential(int *U, int n, int *V, int m, int *T)
 {
 
     // procedure fusion(U[0..n-1],V[0..m-1],T[0..m-1+n-1])
@@ -74,7 +74,7 @@ void fusion(int *U, int n, int *V, int m, int *T)
     }
 }
 
-void tri_fusion(int *tab, int n)
+void tri_fusion_sequential(int *tab, int n)
 {
     // procedure tri fusion(T[1..n])
     // si n est petit adhoc(T[1..n])
@@ -99,9 +99,9 @@ void tri_fusion(int *tab, int n)
     for (int i = mid; i < n; i++)
         V[i - mid] = tab[i];
 
-    tri_fusion(U, mid);
-    tri_fusion(V, (n - mid));
-    fusion(U, mid, V, (n - mid), tab);
+    tri_fusion_sequential(U, mid);
+    tri_fusion_sequential(V, (n - mid));
+    fusion_sequential(U, mid, V, (n - mid), tab);
 }
 
 int main(int argc, char *argv[])
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
      ***********************************************/
 
     double start = omp_get_wtime();
-    tri_fusion(T, array_size);
+    tri_fusion_sequential(T, array_size);
     double stop = omp_get_wtime();
 
     printf("After sorting:\n");
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
     }
     for (int i = 0; i < array_size; i++)
     {
-        fprintf(f_out, "%d\n", T[i]);
+        fprintf(f_out, "%d ", T[i]);
     }
 
     fclose(f_out);

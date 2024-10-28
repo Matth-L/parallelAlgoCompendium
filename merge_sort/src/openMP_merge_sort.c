@@ -59,10 +59,10 @@ void pretty_print_array(int *tab, int n)
     printf("]\n");
 }
 
-void fusion(int *U, int n, int *V, int m, int *T)
+void fusion_openmp(int *U, int n, int *V, int m, int *T)
 {
 
-    // procedure fusion(U[0..n-1],V[0..m-1],T[0..m-1+n-1])
+    // procedure fusion_openmp(U[0..n-1],V[0..m-1],T[0..m-1+n-1])
     // i=j=0
     // U[n]=V[m]=∞
     // pour k=0 `a m-1+n-1 faire
@@ -87,7 +87,7 @@ void fusion(int *U, int n, int *V, int m, int *T)
     }
 }
 
-void tri_fusion(int *tab, int n)
+void tri_fusion_openmp(int *tab, int n)
 {
     if (n < 2)
         return;
@@ -109,18 +109,18 @@ void tri_fusion(int *tab, int n)
 #pragma omp parallel sections
         {
 #pragma omp section
-            tri_fusion(U, mid);
+            tri_fusion_openmp(U, mid);
 #pragma omp section
-            tri_fusion(V, (n - mid));
+            tri_fusion_openmp(V, (n - mid));
         }
     }
     else
     {
-        tri_fusion(U, mid);
-        tri_fusion(V, (n - mid));
+        tri_fusion_openmp(U, mid);
+        tri_fusion_openmp(V, (n - mid));
     }
 
-    fusion(U, mid, V, (n - mid), tab);
+    fusion_openmp(U, mid, V, (n - mid), tab);
 }
 
 int main(int argc, char *argv[])
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
     fflush(stdout);
 
     double start = omp_get_wtime();
-    tri_fusion(T, array_size);
+    tri_fusion_openmp(T, array_size);
     double stop = omp_get_wtime();
 
     printf("After sorting:\n");
