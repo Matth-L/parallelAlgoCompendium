@@ -71,13 +71,14 @@ void tri_fusion(int *tab, int n)
     }
 
     int mid = n / 2;
-    int *U = malloc(mid * sizeof(int));
-    int *V = malloc((n - mid) * sizeof(int));
+    int *U = malloc((mid + 1) * sizeof(int));
+    int *V = malloc((n - mid + 1) * sizeof(int));
 
     for (int i = 0; i < mid; i++)
+    {
         U[i] = tab[i];
-    for (int i = mid; i < n; i++)
-        V[i - mid] = tab[i];
+        V[i] = tab[i+mid];
+    }
 
     #pragma omp taskgroup
     {
@@ -107,8 +108,8 @@ int main(int argc, char *argv[])
     /**********************************************
      * reading the file  + init the array
      ***********************************************/
-    FILE *f = fopen(argv[1], "r");
-    printf("File: %s\n", argv[1]);
+    FILE *f = fopen(argv[2], "r");
+    printf("File: %s\n", argv[2]);
     if (f == NULL)
     {
         perror("Error fopen");
