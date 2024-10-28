@@ -19,6 +19,14 @@ typedef struct Thread_data
     int depth; // New depth parameter to control threading depth
 } data_t;
 
+
+int log2floor(int n)
+{
+    if (n==0 || n==1) return 0;
+
+    return 1 + log2floor(n>>1);
+}
+
 void pretty_print_array(int *tab, int n)
 {
     printf("[");
