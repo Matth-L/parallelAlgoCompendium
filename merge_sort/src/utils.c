@@ -16,7 +16,7 @@ int log2floor(int n)
 void pretty_print_array(int *tab, int n)
 {
     printf("[");
-    if (n < 1000)
+    if (n <= 1000)
     {
         for (int i = 0; i < n; i++)
         {
