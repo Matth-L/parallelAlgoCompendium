@@ -1,9 +1,14 @@
 /*******************************************************************************
- * @file openMP_merge_sort.c
- * @author
- * @brief
+ * @file d2omp.c
+ * @brief Implementation of parallel merge sort using OpenMP
+ *
+ * This file contains the implementation of a merge sort algorithm using
+ * OpenMP to parallelize the sorting. The program reads an array of integers
+ * from a file, sorts the array using parallel merge sort, and then writes
+ * the sorted array to another file.
  *
  ******************************************************************************/
+
 #include <time.h>
 #include <math.h>
 #include <stdio.h>
@@ -14,6 +19,11 @@
 int max_threads;
 int depth = 0;
 
+/**
+ * @brief Computes the floor of the base-2 logarithm of n
+ * @param n The integer to compute the logarithm for
+ * @return The floor of the base-2 logarithm of n
+ */
 int log2floor(int n)
 {
     if (n == 0 || n == 1)
@@ -22,6 +32,11 @@ int log2floor(int n)
     return 1 + log2floor(n >> 1);
 }
 
+/**
+ * @brief Prints an array of integers
+ * @param tab The array to print
+ * @param n The size of the array
+ */
 void pretty_print_array(int *tab, int n)
 {
     printf("[");
@@ -59,17 +74,16 @@ void pretty_print_array(int *tab, int n)
     printf("]\n");
 }
 
+/**
+ * @brief Merges two sorted arrays into one sorted array
+ * @param U The first sorted array
+ * @param n The size of the first array
+ * @param V The second sorted array
+ * @param m The size of the second array
+ * @param T The resulting merged array
+ */
 void fusion_openmp(int *U, int n, int *V, int m, int *T)
 {
-
-    // procedure fusion_openmp(U[0..n-1],V[0..m-1],T[0..m-1+n-1])
-    // i=j=0
-    // U[n]=V[m]=∞
-    // pour k=0 `a m-1+n-1 faire
-    // si U[i]<V[j] alors
-    // T[k]=U[i++]
-    // sinon
-    // T[k]=V[j++]
     int i = 0, j = 0;
     U[n] = INT_MAX;
     V[m] = INT_MAX;
@@ -77,7 +91,6 @@ void fusion_openmp(int *U, int n, int *V, int m, int *T)
     {
         if (U[i] < V[j])
         {
-
             T[k] = U[i++];
         }
         else
@@ -87,11 +100,26 @@ void fusion_openmp(int *U, int n, int *V, int m, int *T)
     }
 }
 
+/**
+ * @brief Sorts an array of integers using parallel merge sort with OpenMP
+ * @param tab The array to sort
+ * @param n The size of the array
+ */
 void tri_fusion_openmp(int *tab, int n)
 {
+    // procedure tri fusion(T[1..n])
+    // si n est petit adhoc(T[1..n])
+    // sinon
+    // U[1..n/2]=T[1..n/2]
+    // V[1..n/2]=T[1+n/2..n]
+    // tri fusion(U)
+    // tri fusion(V)
+    // fusion(U,V,T)
+
     if (n < 2)
         return;
 
+    // Split the array into two parts
     int mid = n / 2;
     int *U = malloc((mid + 1) * sizeof(int));
     int *V = malloc((n - mid + 1) * sizeof(int));
@@ -101,10 +129,10 @@ void tri_fusion_openmp(int *tab, int n)
     for (int i = 0; i < mid; i++)
     {
         U[i] = tab[i];
-        V[i] = tab[i+mid];
+        V[i] = tab[i + mid];
     }
 
-    if (depth < log2floor(max_threads)) // Limit threading to top 3 levels
+    if (depth < log2floor(max_threads)) // Limit threading to top levels
     {
 #pragma omp parallel sections
         {
@@ -123,12 +151,18 @@ void tri_fusion_openmp(int *tab, int n)
     fusion_openmp(U, mid, V, (n - mid), tab);
 }
 
+/**
+ * @brief Entry point of the program
+ * @param argc The number of command-line arguments
+ * @param argv The command-line arguments
+ * @return The exit code of the program
+ */
 int main(int argc, char *argv[])
 {
     omp_set_num_threads(atoi(argv[1]));
 
     /**********************************************
-     * reading the file  + init the array
+     * Reading the file and initializing the array
      ***********************************************/
     FILE *f = fopen(argv[2], "r");
     printf("File: %s\n", argv[2]);
@@ -154,7 +188,7 @@ int main(int argc, char *argv[])
     srand(time(NULL));
 
     /**********************************************
-     * sorting
+     * Sorting
      ***********************************************/
 
     printf("Before sorting:\n");
@@ -173,7 +207,7 @@ int main(int argc, char *argv[])
     fflush(stdout);
 
     /**********************************************
-     * writing the sorted array in a file
+     * Writing the sorted array to a file
      ***********************************************/
     
     FILE *f_out = fopen(argv[3], "w");

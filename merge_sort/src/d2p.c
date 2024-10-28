@@ -1,6 +1,6 @@
 /*******************************************************************************
- * @file pthread_merge_sort.c
- * @brief Parallel Merge Sort with Optimized Thread Spawning and Memory Usage
+ * @file d2p.c
+ * @brief Implementation of parallel merge sort using pthread
  ******************************************************************************/
 #include <time.h>
 #include <stdio.h>
@@ -22,9 +22,9 @@ typedef struct Thread_data
 } data_t;
 
 /**
-    * @brief log in base 2 of n
-    * @param n the number to compute the log
-    * @return the log in base 2 of n
+ * @brief Computes the floor of the base-2 logarithm of n
+ * @param n The integer to compute the logarithm for
+ * @return The floor of the base-2 logarithm of n
  */
 int log2floor(int n)
 {
@@ -35,10 +35,10 @@ int log2floor(int n)
 }
 
 /**
-    * @brief pretty print an array
-    * @param tab the array to print
-    * @param n the size of the array
-*/  
+ * @brief Prints an array of integers
+ * @param tab The array to print
+ * @param n The size of the array
+ */  
 void pretty_print_array(int *tab, int n)
 {
     printf("[");
@@ -77,11 +77,11 @@ void pretty_print_array(int *tab, int n)
 }
 
 /**
-    * @brief merge two sorted arrays
-    * @param u the first array
-    * @param v the second array
-    * @param T the array to store the result
-*/
+ * @brief Merges two sorted arrays into one sorted array
+ * @param u The first sorted array
+ * @param v The second sorted array
+ * @param T The resulting merged array
+ */
 void fusion_pthread(data_t u, data_t v, int *T)
 {
     int i = 0, j = 0;
@@ -103,9 +103,9 @@ void fusion_pthread(data_t u, data_t v, int *T)
 }
 
 /**
-    * @brief sort an array using merge sort
-    * @param arg the data containing the array to sort and its size
-*/
+ * @brief Sorts an array of integers using parallel merge sort with pthread
+ * @param arg The data containing the array to sort and its size
+ */
 void *tri_fusion_pthread(void *arg)
 {
     data_t *t = (data_t *)arg;
@@ -158,6 +158,10 @@ int main(int argc, char *argv[])
 
     max_threads = atoi(argv[1]);
 
+    /**********************************************
+     * Reading the file and initializing the array
+     ***********************************************/
+
     FILE *f = fopen(argv[2], "r");
     if (f == NULL)
     {
@@ -176,6 +180,10 @@ int main(int argc, char *argv[])
 
     fclose(f);
 
+    /**********************************************
+     * Sorting
+     ***********************************************/
+
     data_t init_data = {array_size, T, 0};
 
     printf("Before sorting:\n");
@@ -193,7 +201,7 @@ int main(int argc, char *argv[])
     fflush(stdout);
 
     /**********************************************
-       * writing the sorted array in a file
+       * Writing the sorted array to a file
        ***********************************************/
 
     FILE *f_out = fopen(argv[3], "w");

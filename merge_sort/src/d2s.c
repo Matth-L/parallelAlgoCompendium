@@ -1,8 +1,7 @@
 /*******************************************************************************
- * @file sequential_merge_sort.c
- * @author Matthias Lapu,
+ * @file d2s.c
  * @brief
- *
+ * 
  ******************************************************************************/
 #include <limits.h>
 #include <stdio.h>
@@ -12,9 +11,9 @@
 
 
 /**
-    * @brief pretty print an array
-    * @param tab the array to print
-    * @param n the size of the array
+ * @brief Prints an array of integers
+ * @param tab The array to print
+ * @param n The size of the array
 */
 void pretty_print_array(int *tab, int n)
 {
@@ -54,16 +53,15 @@ void pretty_print_array(int *tab, int n)
 }
 
 /**
-    * @brief merge two sorted arrays
-    * @param U the first array
-    * @param n the size of the first array
-    * @param V the second array
-    * @param m the size of the second array
-    * @param T the array to store the result
+ * @brief Merges two sorted arrays into one sorted array
+ * @param U The first sorted array
+ * @param n The size of the first array
+ * @param V The second sorted array
+ * @param m The size of the second array
+ * @param T The resulting merged array
 */
 void fusion_sequential(int *U, int n, int *V, int m, int *T)
 {
-
     // procedure fusion(U[0..n-1],V[0..m-1],T[0..m-1+n-1])
     // i=j=0
     // U[n]=V[m]=∞
@@ -72,6 +70,7 @@ void fusion_sequential(int *U, int n, int *V, int m, int *T)
     // T[k]=U[i++]
     // sinon
     // T[k]=V[j++]
+
     int i = 0, j = 0;
     U[n] = INT_MAX;
     V[m] = INT_MAX;
@@ -89,9 +88,9 @@ void fusion_sequential(int *U, int n, int *V, int m, int *T)
 }
 
 /**
-    * @brief sort an array using merge sort
-    * @param tab the array to sort
-    * @param n the size of the array
+ * @brief Sorts an array of integers using parallel merge sort with OpenMP
+ * @param tab The array to sort
+ * @param n The size of the array
 */
 void tri_fusion_sequential(int *tab, int n)
 {
@@ -127,7 +126,7 @@ void tri_fusion_sequential(int *tab, int n)
 int main(int argc, char *argv[])
 {
     /**********************************************
-     * reading the file  + init the array
+     * Reading the file and initializing the array
      ***********************************************/
     FILE *f = fopen(argv[1], "r");
     printf("File: %s\n", argv[1]);
@@ -153,7 +152,7 @@ int main(int argc, char *argv[])
     srand(time(NULL));
 
     /**********************************************
-     * sorting
+     * Sorting
      ***********************************************/
 
     double start = omp_get_wtime();
@@ -168,7 +167,7 @@ int main(int argc, char *argv[])
     fflush(stdout);
 
     /**********************************************
-     * writing the sorted array in a file
+     * Writing the sorted array to a file
      ***********************************************/
 
     FILE *f_out = fopen(argv[2], "w");
