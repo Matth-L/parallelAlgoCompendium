@@ -10,7 +10,6 @@
 #include <omp.h>
 #include <semaphore.h>
 
-sem_t thread_semaphore;
 int max_threads;
 
 typedef struct Thread_data
@@ -92,9 +91,10 @@ void *tri_fusion(void *arg)
         return NULL;
 
     int mid = t->n / 2;
-    data_t u = {mid, malloc((mid + 1) * sizeof(int)), t->depth + 1};
-    data_t v = {t->n - mid, malloc((t->n - mid + 1) * sizeof(int)), t->depth + 1};
 
+    data_t u = {mid, malloc((mid + 1) * sizeof(int)), t->depth + 1};
+    data_t v = {t->n - mid, malloc((t->n - mid + 1) * sizeof(int)), t->depth + 1};  
+ 
     for (int i = 0; i < mid; i++)
         u.tab[i] = t->tab[i];
     for (int i = mid; i < t->n; i++)
@@ -103,7 +103,6 @@ void *tri_fusion(void *arg)
     pthread_t child;
     if (t->depth < log2floor(max_threads)) // Limit threading to top 3 levels
     {
-        sem_wait(&thread_semaphore);
         if (pthread_create(&child, NULL, tri_fusion, &u) != 0)
         {
             perror("pthread_create error");
@@ -111,7 +110,6 @@ void *tri_fusion(void *arg)
         }
         tri_fusion(&v);
         pthread_join(child, NULL);
-        sem_post(&thread_semaphore);
     }
     else // Sequential merge sort for deeper recursion
     {
@@ -135,7 +133,6 @@ int main(int argc, char *argv[])
     }
 
     max_threads = atoi(argv[1]);
-    sem_init(&thread_semaphore, 0, max_threads);
 
     FILE *f = fopen(argv[2], "r");
     if (f == NULL)
@@ -171,7 +168,27 @@ int main(int argc, char *argv[])
     printf("\033[0;32m\nTime: %g s\n\033[0m", stop - start);
     fflush(stdout);
 
+  /**********************************************
+     * writing the sorted array in a file
+     ***********************************************/
+
+    char output_filename[50];
+    snprintf(output_filename, sizeof(output_filename),
+             "sorted_array_%d.txt", array_size);
+
+    FILE *f_out = fopen(output_filename, "w");
+    if (f_out == NULL)
+    {
+        perror("Error fopen");
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < array_size; i++)
+    {
+        fprintf(f_out, "%d\n", T[i]);
+    }
+
+    fclose(f_out);
     free(init_data.tab);
-    sem_destroy(&thread_semaphore);
+
     return 0;
 }
