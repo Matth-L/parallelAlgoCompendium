@@ -10,6 +10,12 @@
 #include <time.h>
 #include <omp.h>
 
+
+/**
+    * @brief pretty print an array
+    * @param tab the array to print
+    * @param n the size of the array
+*/
 void pretty_print_array(int *tab, int n)
 {
     printf("[");
@@ -47,6 +53,14 @@ void pretty_print_array(int *tab, int n)
     printf("]\n");
 }
 
+/**
+    * @brief merge two sorted arrays
+    * @param U the first array
+    * @param n the size of the first array
+    * @param V the second array
+    * @param m the size of the second array
+    * @param T the array to store the result
+*/
 void fusion_sequential(int *U, int n, int *V, int m, int *T)
 {
 
@@ -74,6 +88,11 @@ void fusion_sequential(int *U, int n, int *V, int m, int *T)
     }
 }
 
+/**
+    * @brief sort an array using merge sort
+    * @param tab the array to sort
+    * @param n the size of the array
+*/
 void tri_fusion_sequential(int *tab, int n)
 {
     // procedure tri fusion(T[1..n])
@@ -103,6 +122,7 @@ void tri_fusion_sequential(int *tab, int n)
     tri_fusion_sequential(V, (n - mid));
     fusion_sequential(U, mid, V, (n - mid), tab);
 }
+
 
 int main(int argc, char *argv[])
 {
