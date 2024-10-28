@@ -96,11 +96,11 @@ void tri_fusion(int *tab, int n)
     int *U = malloc((mid + 1) * sizeof(int));
     int *V = malloc((n - mid + 1) * sizeof(int));
 
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for (int i = 0; i < mid; i++)
         U[i] = tab[i];
 
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for (int i = mid; i < n; i++)
         V[i - mid] = tab[i];
 
