@@ -13,7 +13,7 @@
 void pretty_print_array(int *tab, int n)
 {
     printf("[");
-    if (n <= 1000)
+    if (n < 1000)
     {
         for (int i = 0; i < n; i++)
         {
@@ -146,8 +146,9 @@ int main(int argc, char *argv[])
 
     printf("After sorting:\n");
     pretty_print_array(T, array_size);
+    printf("\n\033[0;31mSequential merge sort: with array size of %i\033[0m",
+           array_size);
     printf("\033[0;32m\nTime: %g s\n\033[0m", stop - start);
-
     fflush(stdout);
 
     /**********************************************

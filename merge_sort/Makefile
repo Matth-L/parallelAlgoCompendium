@@ -33,7 +33,7 @@ benchmark :
 # running sequential merge sort
 
 	@echo "Running sequential merge sort";
-	for size in 10 100 1000 10000 100000; do \
+	for size in 100 1000 10000 100000 1000000; do \
 		./bin/sequential_merge_sort ./results/unsorted_array_$$size.txt; \
 	done
 
@@ -45,7 +45,7 @@ benchmark :
 	# 	./bin/pthread_merge_sort $$threads; \
 	# 	echo "Running openMP_merge_sort"; \
 	# 	./bin/openMP_merge_sort $$threads; \
-	# done
+	# done	
 
 ###############################################################################
 
