@@ -1,5 +1,7 @@
 all : 
-	make style
+	make dir 
+	make compile
+	make array
 	
 
 dir : 
