@@ -10,8 +10,10 @@
 #include <omp.h>
 #include <semaphore.h>
 
+// Global variable to store the maximum number of threads
 int max_threads;
 
+// Data structure to pass to the thread function
 typedef struct Thread_data
 {
     int n;
@@ -19,6 +21,11 @@ typedef struct Thread_data
     int depth; // New depth parameter to control threading depth
 } data_t;
 
+/**
+    * @brief log in base 2 of n
+    * @param n the number to compute the log
+    * @return the log in base 2 of n
+ */
 int log2floor(int n)
 {
     if (n == 0 || n == 1)
@@ -27,6 +34,11 @@ int log2floor(int n)
     return 1 + log2floor(n >> 1);
 }
 
+/**
+    * @brief pretty print an array
+    * @param tab the array to print
+    * @param n the size of the array
+*/  
 void pretty_print_array(int *tab, int n)
 {
     printf("[");
@@ -64,6 +76,12 @@ void pretty_print_array(int *tab, int n)
     printf("]\n");
 }
 
+/**
+    * @brief merge two sorted arrays
+    * @param u the first array
+    * @param v the second array
+    * @param T the array to store the result
+*/
 void fusion_pthread(data_t u, data_t v, int *T)
 {
     int i = 0, j = 0;
@@ -84,6 +102,10 @@ void fusion_pthread(data_t u, data_t v, int *T)
     }
 }
 
+/**
+    * @brief sort an array using merge sort
+    * @param arg the data containing the array to sort and its size
+*/
 void *tri_fusion_pthread(void *arg)
 {
     data_t *t = (data_t *)arg;
