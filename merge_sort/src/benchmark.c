@@ -227,9 +227,9 @@ int main(int argc, char *argv[])
     fclose(f);
 
     int n_try = 10;
-    double tab_of_time_sequential[n_try];
-    double tab_of_time_phtread[7][n_try];
-    double tab_of_time_openmp[7][n_try];
+    double time_sequential;
+    double tab_of_time_phtread[7];
+    double tab_of_time_openmp[7];
     int nb_threads[7] = {1, 2, 4, 8, 16, 24, 48};
 
     /**********************************************
@@ -241,8 +241,9 @@ int main(int argc, char *argv[])
         double start = omp_get_wtime();
         tri_fusion_sequential(T, array_size);
         double stop = omp_get_wtime();
-        tab_of_time_sequential[i] = stop - start;
+        time_sequential += stop - start;
     }
+    time_sequential /= n_try;
     /**********************************************
      * BENCHMARK PTHREAD
      ***********************************************/
@@ -256,8 +257,9 @@ int main(int argc, char *argv[])
             double start = omp_get_wtime();
             tri_fusion_pthread(&init_data);
             double stop = omp_get_wtime();
-            tab_of_time_phtread[i][j] = stop - start;
+            tab_of_time_phtread[i] += stop - start;
         }
+        tab_of_time_phtread[i] /= n_try; 
     }
 
     /**********************************************
@@ -273,46 +275,46 @@ int main(int argc, char *argv[])
             double start = omp_get_wtime();
             tri_fusion_openmp(T, array_size);
             double stop = omp_get_wtime();
-            tab_of_time_openmp[i][j] = stop - start;
+            tab_of_time_openmp[i] += stop - start;
         }
+        tab_of_time_openmp[i] /= n_try;
     }
 
-    /**********************************************
-     * average of tab
-     ***********************************************/
+    // /**********************************************
+    //  * average of tab
+    //  ***********************************************/
 
-    double average_sequential = 0;
-    double average_pthread = 0;
-    double average_openmp = 0;
+    // double average_pthread = 0;
+    // double average_openmp = 0;
 
-    // sum of ligne 
-    for (int i = 0; i < n_try; i++)
-    {
-        average_sequential += tab_of_time_sequential[i];
-    }
+    // // sum of ligne 
+    // for (int i = 0; i < n_try; i++)
+    // {
+    //     average_sequential += tab_of_time_sequential[i];
+    // }
 
-    printf("Average time for sequential: %f\n", average_sequential / n_try);
+    printf("Average time for sequential: %f\n", time_sequential);
 
-    int avg_pthread[7];
-    int avg_openmp[7];
-    for (int i =0;i<7;i++){
-        for(int j=0;j<n_try;j++){
-            avg_pthread[i] += tab_of_time_phtread[i][j];
-            avg_openmp[i] += tab_of_time_openmp[i][j];
-        }   
-    }
+    // int avg_pthread[7];
+    // int avg_openmp[7];
+    // for (int i =0;i<7;i++){
+    //     for(int j=0;j<n_try;j++){
+    //         avg_pthread[i] += tab_of_time_phtread[i][j];
+    //         avg_openmp[i] += tab_of_time_openmp[i][j];
+    //     }   
+    // }
 
      
     printf("Average time for pthread: ");
     for (int i = 0; i < 7; i++)
     {
-        printf("%f ", avg_pthread[i] / n_try);
+        printf("%f ", tab_of_time_phtread[i]);
     }   
     printf("\n");
     printf("Average time for openmp: ");
     for (int i = 0; i < 7; i++)
     {
-        printf("%f ", avg_openmp[i] / n_try);
+        printf("%f ", tab_of_time_openmp[i]);
     }
     printf("\n");
 
