@@ -23,9 +23,9 @@ if [ -f unsorted_array.txt ]; then
 fi
 
 ################ Création du fichier ###############
-
-touch unsorted_array.txt; echo -n $1 > unsorted_array.txt
+filename="unsorted_array_${1}.txt"
+touch $filename ; echo -n $1 > $filename
 
 for i in $(seq 1 $1); do
-    echo -n " $((RANDOM % 100))" >> unsorted_array.txt
+    echo -n " $((RANDOM % 10000))" >> $filename
 done
