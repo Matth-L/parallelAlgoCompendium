@@ -228,8 +228,8 @@ int main(int argc, char *argv[])
 
     int n_try = 10;
     double tab_of_time_sequential[n_try];
-    double tab_of_time_phtread[n_try][7];
-    double tab_of_time_openmp[n_try][7];
+    double tab_of_time_phtread[7][n_try];
+    double tab_of_time_openmp[7][n_try];
     int nb_threads[7] = {1, 2, 4, 8, 16, 24, 48};
 
     /**********************************************
@@ -248,11 +248,11 @@ int main(int argc, char *argv[])
      ***********************************************/
     data_t init_data = {array_size, T, 0};
 
-    for (int i = 0; i < n_try; i++)
+    for (int i = 0; i < 7; i++)
     {
-        for (int j = 0; j < 7; j++)
+        for (int j = 0; j < n_try; j++)
         {
-            max_threads = nb_threads[j];
+            max_threads = nb_threads[i];
             double start = omp_get_wtime();
             tri_fusion_pthread(&init_data);
             double stop = omp_get_wtime();
@@ -264,11 +264,11 @@ int main(int argc, char *argv[])
      * BENCHMARK OPENMP
      ***********************************************/
 
-    for (int i = 0; i < n_try; i++)
+    for (int i = 0; i < 7; i++)
     {
-        for (int j = 0; j < 7; j++)
+        for (int j = 0; j < n_try; j++)
         {
-            max_threads = nb_threads[j];
+            max_threads = nb_threads[i];
             depth = 0;
             double start = omp_get_wtime();
             tri_fusion_openmp(T, array_size);
@@ -285,7 +285,7 @@ int main(int argc, char *argv[])
     double average_pthread = 0;
     double average_openmp = 0;
 
-    // sum of ligne
+    // sum of ligne 
     for (int i = 0; i < n_try; i++)
     {
         average_sequential += tab_of_time_sequential[i];
@@ -295,26 +295,25 @@ int main(int argc, char *argv[])
 
     int avg_pthread[7];
     int avg_openmp[7];
-    for (int j = 0; j < 7; j++)
-    {
-        for (int i = 0; i < n_try; i++)
-        {
-            avg_pthread[j] += tab_of_time_phtread[i][j];
-            avg_openmp[j] += tab_of_time_openmp[i][j];
-        }
+    for (int i =0;i<7;i++){
+        for(int j=0;j<n_try;j++){
+            avg_pthread[i] += tab_of_time_phtread[i][j];
+            avg_openmp[i] += tab_of_time_openmp[i][j];
+        }   
     }
 
+     
     printf("Average time for pthread: ");
     for (int i = 0; i < 7; i++)
     {
-        printf("%g ", avg_pthread[i] / n_try);
-    }
-
+        printf("%f ", avg_pthread[i] / n_try);
+    }   
     printf("\n");
     printf("Average time for openmp: ");
     for (int i = 0; i < 7; i++)
     {
-        printf("%g ", avg_openmp[i] / n_try);
+        printf("%f ", avg_openmp[i] / n_try);
     }
     printf("\n");
+
 }
