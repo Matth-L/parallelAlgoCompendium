@@ -9,43 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <omp.h>
-
-void pretty_print_array(int *tab, int n)
-{
-    printf("[");
-    if (n < 1000)
-    {
-        for (int i = 0; i < n; i++)
-        {
-            printf("%d", tab[i]);
-            if (i < n - 1)
-            {
-                printf(", ");
-            }
-        }
-    }
-    else
-    {
-        for (int i = 0; i < 100; i++)
-        {
-            printf("%d", tab[i]);
-            if (i < 99)
-            {
-                printf(", ");
-            }
-        }
-        printf(", ... , ");
-        for (int i = n - 100; i < n; i++)
-        {
-            printf("%d", tab[i]);
-            if (i < n - 1)
-            {
-                printf(", ");
-            }
-        }
-    }
-    printf("]\n");
-}
+#include "utils.h"
 
 void fusion_sequential(int *U, int n, int *V, int m, int *T)
 {
@@ -102,72 +66,4 @@ void tri_fusion_sequential(int *tab, int n)
     tri_fusion_sequential(U, mid);
     tri_fusion_sequential(V, (n - mid));
     fusion_sequential(U, mid, V, (n - mid), tab);
-}
-
-int main(int argc, char *argv[])
-{
-    /**********************************************
-     * reading the file  + init the array
-     ***********************************************/
-    FILE *f = fopen(argv[1], "r");
-    printf("File: %s\n", argv[1]);
-    if (f == NULL)
-    {
-        perror("Error fopen");
-        exit(EXIT_FAILURE);
-    }
-
-    int c, array_size, count = 0;
-    fscanf(f, "%d", &array_size);
-    int *T = malloc(array_size * sizeof(int));
-
-    while (!feof(f))
-    {
-        fscanf(f, "%d", &c);
-        T[count] = c;
-        count++;
-    }
-
-    fclose(f);
-
-    srand(time(NULL));
-
-    /**********************************************
-     * sorting
-     ***********************************************/
-
-    double start = omp_get_wtime();
-    tri_fusion_sequential(T, array_size);
-    double stop = omp_get_wtime();
-
-    printf("After sorting:\n");
-    pretty_print_array(T, array_size);
-    printf("\n\033[0;31mSequential merge sort: with array size of %i\033[0m",
-           array_size);
-    printf("\033[0;32m\nTime: %g s\n\033[0m", stop - start);
-    fflush(stdout);
-
-    /**********************************************
-     * writing the sorted array in a file
-     ***********************************************/
-
-    char output_filename[50];
-    snprintf(output_filename, sizeof(output_filename),
-             "sorted_array_%d.txt", array_size);
-
-    FILE *f_out = fopen(output_filename, "w");
-    if (f_out == NULL)
-    {
-        perror("Error fopen");
-        exit(EXIT_FAILURE);
-    }
-    for (int i = 0; i < array_size; i++)
-    {
-        fprintf(f_out, "%d ", T[i]);
-    }
-
-    fclose(f_out);
-    free(T);
-
-    exit(EXIT_SUCCESS);
 }
