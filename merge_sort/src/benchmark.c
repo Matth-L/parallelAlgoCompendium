@@ -202,16 +202,23 @@ void tri_fusion_openmp(int *tab, int n)
 int main(int argc, char *argv[])
 {
 
+    // the average will be n/10
     int n_try = 10;
+    // average time for sequential
     double time_sequential;
-    double tab_of_time_phtread[7];
-    double tab_of_time_openmp[7];
-    double tab_of_time_openmp2[7];
-
+    // average time for pthread
+    double tab_of_time_phtread[6];
+    // average time for openmp
+    double tab_of_time_openmp[6];
+    // number of threads to test
     int nb_threads[6] = {2, 4, 8, 16, 24, 48};
 
     for (int n_array_size = 2; n_array_size < 100000; n_array_size *= 2)
     {
+
+        /**********************************************
+         * init tab
+         ***********************************************/
         int T[n_array_size];
         for (int i = 0; i < n_array_size; i++)
         {
@@ -232,7 +239,8 @@ int main(int argc, char *argv[])
         time_sequential /= n_try;
         printf("\n");
         printf("\033[0;31mSize of array: %d\033[0m\n", n_array_size);
-        printf("\033[0;34mAverage time for sequential: %f\033[0m\n", time_sequential);
+        printf("\033[0;34mAverage time for sequential:");
+        printf("\033[0m %f\n", time_sequential);
 
         /**********************************************
          * BENCHMARK PTHREAD
@@ -250,6 +258,11 @@ int main(int argc, char *argv[])
                 tab_of_time_phtread[i] += stop - start;
             }
             tab_of_time_phtread[i] /= n_try;
+            if (tab_of_time_phtread[i] < time_sequential)
+            {
+                printf("\033[0;35mPthread faster than sequential for %d threads\033[0m\n", 
+                       nb_threads[i]);
+            }
         }
         printf("\033[0;32mAverage time for pthread: \033[0m\n");
         for (int i = 0; i < 6; i++)
@@ -273,6 +286,11 @@ int main(int argc, char *argv[])
                 tab_of_time_openmp[i] += stop - start;
             }
             tab_of_time_openmp[i] /= n_try;
+            if (tab_of_time_openmp[i] < time_sequential)
+            {
+                printf("\033[0;36mOpenmp faster than sequential for %d threads\033[0m\n", 
+                       nb_threads[i]);
+            }
         }
         printf("\033[0;33mAverage time for openmp: \033[0m\n");
         for (int i = 0; i < 6; i++)
