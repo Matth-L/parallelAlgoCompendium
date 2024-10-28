@@ -11,6 +11,17 @@
 #include <limits.h>
 #include <omp.h>
 
+int max_threads;
+int depth = 0;
+
+int log2floor(int n)
+{
+    if (n == 0 || n == 1)
+        return 0;
+
+    return 1 + log2floor(n >> 1);
+}
+
 void pretty_print_array(int *tab, int n)
 {
     printf("[");
@@ -78,56 +89,43 @@ void fusion(int *U, int n, int *V, int m, int *T)
 
 void tri_fusion(int *tab, int n)
 {
-    // procedure tri fusion(T[1..n])
-    // si n est petit adhoc(T[1..n])
-    // sinon
-    // U[1..n/2]=T[1..n/2]
-    // V[1..n/2]=T[1+n/2..n]
-    // tri fusion(U)
-    // tri fusion(V)
-    // fusion(U,V,T)
-
     if (n < 2)
-    {
         return;
-    }
 
     int mid = n / 2;
     int *U = malloc((mid + 1) * sizeof(int));
     int *V = malloc((n - mid + 1) * sizeof(int));
 
-    // #pragma omp parallel for
+    depth++;
+
     for (int i = 0; i < mid; i++)
+    {
         U[i] = tab[i];
+        V[i] = tab[i+mid];
+    }
 
-    // #pragma omp parallel for
-    for (int i = mid; i < n; i++)
-        V[i - mid] = tab[i];
-
-    // #pragma omp parallel sections
-    // {
-    //     #pragma omp section
-    //     {
-    //         tri_fusion(U, mid);
-    //     }
-    //     #pragma omp section
-    //     {
-    //         tri_fusion(V, (n - mid));
-    //     }
-    // }
-
-    #pragma omp task firstprivate (U, mid)
-    tri_fusion(U, mid);
-
-    #pragma omp task firstprivate (V, mid)
-    tri_fusion(V, (n - mid));
+    if (depth < log2floor(max_threads)) // Limit threading to top 3 levels
+    {
+#pragma omp parallel sections
+        {
+#pragma omp section
+            tri_fusion(U, mid);
+#pragma omp section
+            tri_fusion(V, (n - mid));
+        }
+    }
+    else
+    {
+        tri_fusion(U, mid);
+        tri_fusion(V, (n - mid));
+    }
 
     fusion(U, mid, V, (n - mid), tab);
 }
 
 int main(int argc, char *argv[])
 {
-    omp_set_num_threads (atoi(argv[1]));
+    omp_set_num_threads(atoi(argv[1]));
 
     /**********************************************
      * reading the file  + init the array
@@ -155,13 +153,12 @@ int main(int argc, char *argv[])
 
     srand(time(NULL));
 
-
     /**********************************************
      * sorting
-    ***********************************************/
+     ***********************************************/
 
     printf("Before sorting:\n");
-    pretty_print_array(T,array_size);
+    pretty_print_array(T, array_size);
     fflush(stdout);
 
     double start = omp_get_wtime();
@@ -169,15 +166,15 @@ int main(int argc, char *argv[])
     double stop = omp_get_wtime();
 
     printf("After sorting:\n");
+    pretty_print_array(T, array_size);
     printf("\n\033[0;31mOpenMP merge sort: with array size of %i\033[0m",
            array_size);
     printf("\033[0;32m\nTime: %g s\n\033[0m", stop - start);
     fflush(stdout);
 
-
     /**********************************************
-       * writing the sorted array in a file
-       ***********************************************/
+     * writing the sorted array in a file
+     ***********************************************/
 
     char output_filename[50];
     snprintf(output_filename, sizeof(output_filename),

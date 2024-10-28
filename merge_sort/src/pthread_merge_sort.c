@@ -93,13 +93,15 @@ void *tri_fusion(void *arg)
     int mid = t->n / 2;
 
     data_t u = {mid, malloc((mid + 1) * sizeof(int)), t->depth + 1};
-    data_t v = {t->n - mid, malloc((t->n - mid + 1) * sizeof(int)), t->depth + 1};  
- 
-    for (int i = 0; i < mid; i++)
-        u.tab[i] = t->tab[i];
-    for (int i = mid; i < t->n; i++)
-        v.tab[i - mid] = t->tab[i];
+    data_t v = {t->n - mid, malloc((t->n - mid + 1) * sizeof(int)), t->depth + 1};
 
+    
+    for (int i = 0; i < mid; i++)
+    {
+        u.tab[i] = t->tab[i];
+        v.tab[i] = t->tab[i+mid];
+    }
+    
     pthread_t child;
     if (t->depth < log2floor(max_threads)) // Limit threading to top 3 levels
     {
@@ -168,9 +170,9 @@ int main(int argc, char *argv[])
     printf("\033[0;32m\nTime: %g s\n\033[0m", stop - start);
     fflush(stdout);
 
-  /**********************************************
-     * writing the sorted array in a file
-     ***********************************************/
+    /**********************************************
+       * writing the sorted array in a file
+       ***********************************************/
 
     char output_filename[50];
     snprintf(output_filename, sizeof(output_filename),

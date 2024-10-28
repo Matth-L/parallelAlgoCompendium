@@ -15,7 +15,7 @@ compile:
 
 array:
 	@echo "creating array";
-	for size in 10 100  ; do \
+	for size in 10 100 100000  ; do \
 		./src/create_array.sh $$size results; \
 	done
 
