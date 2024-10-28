@@ -1,21 +1,22 @@
 /*******************************************************************************
  * @file pthread_merge_sort.c
- * @author
- * @brief
- *
+ * @brief Parallel Merge Sort with Optimized Thread Spawning and Memory Usage
  ******************************************************************************/
 #include <time.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <pthread.h>
 #include <omp.h>
+#include <semaphore.h>
+
+sem_t thread_semaphore;
 
 typedef struct Thread_data
 {
     int n;
     int *tab;
+    int depth; // New depth parameter to control threading depth
 } data_t;
 
 void pretty_print_array(int *tab, int n)
@@ -55,18 +56,8 @@ void pretty_print_array(int *tab, int n)
     printf("]\n");
 }
 
-// should stay sequential
 void fusion(data_t u, data_t v, int *T)
 {
-
-    // procedure fusion(U[0..n-1],V[0..m-1],T[0..m-1+n-1])
-    // i=j=0
-    // U[n]=V[m]=∞
-    // pour k=0 `a m-1+n-1 faire
-    // si U[i]<V[j] alors
-    // T[k]=U[i++]
-    // sinon
-    // T[k]=V[j++]
     int i = 0, j = 0;
     int n = u.n;
     int m = v.n;
@@ -85,73 +76,90 @@ void fusion(data_t u, data_t v, int *T)
     }
 }
 
-// changed the cast to match pthread
 void *tri_fusion(void *arg)
 {
     data_t *t = (data_t *)arg;
-
-    // procedure tri fusion(T[1..n])
-    // si n est petit adhoc(T[1..n])
-    // sinon
-    // U[1..n/2]=T[1..n/2]
-    // V[1..n/2]=T[1+n/2..n]
-    // tri fusion(U)
-    // tri fusion(V)
-    // fusion(U,V,T)
-
     if (t->n < 2)
         return NULL;
 
     int mid = t->n / 2;
-    data_t u = {mid, malloc(mid * sizeof(int))};
-    data_t v = {t->n - mid, malloc((t->n - mid) * sizeof(int))};
+    data_t u = {mid, malloc((mid + 1) * sizeof(int)), t->depth + 1};
+    data_t v = {t->n - mid, malloc((t->n - mid + 1) * sizeof(int)), t->depth + 1};
 
     for (int i = 0; i < mid; i++)
         u.tab[i] = t->tab[i];
     for (int i = mid; i < t->n; i++)
         v.tab[i - mid] = t->tab[i];
 
-    // spawn thread
     pthread_t child;
-    pthread_create(&child, NULL, (void *(*)(void *))tri_fusion, &u);
-    tri_fusion(&v);
-
-    pthread_join(child, NULL);
+    if (t->depth < 3) // Limit threading to top 3 levels
+    {
+        sem_wait(&thread_semaphore);
+        if (pthread_create(&child, NULL, tri_fusion, &u) != 0)
+        {
+            perror("pthread_create error");
+            exit(EXIT_FAILURE);
+        }
+        tri_fusion(&v);
+        pthread_join(child, NULL);
+        sem_post(&thread_semaphore);
+    }
+    else // Sequential merge sort for deeper recursion
+    {
+        tri_fusion(&u);
+        tri_fusion(&v);
+    }
 
     fusion(u, v, t->tab);
 
     free(u.tab);
     free(v.tab);
+    return NULL;
 }
 
 int main(int argc, char *argv[])
 {
-
-    // not generic, just to test
-    data_t init_data = {16, malloc(init_data.n * sizeof(int))};
-
-    srand(time(NULL));
-
-    for (int i = 0; i < 16; i++)
+    if (argc < 3)
     {
-        init_data.tab[i] = rand() % 100;
+        fprintf(stderr, "Usage: %s <max_threads> <input_file>\n", argv[0]);
+        exit(EXIT_FAILURE);
     }
 
+    int max_threads = atoi(argv[1]);
+    sem_init(&thread_semaphore, 0, max_threads);
+
+    FILE *f = fopen(argv[2], "r");
+    if (f == NULL)
+    {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    int array_size, c, count = 0;
+    fscanf(f, "%d", &array_size);
+    int *T = malloc(array_size * sizeof(int));
+
+    while (count < array_size && fscanf(f, "%d", &c) != EOF)
+    {
+        T[count++] = c;
+    }
+
+    fclose(f);
+
+    data_t init_data = {array_size, T, 0};
+
     printf("Before sorting:\n");
-    pretty_print_array(init_data.tab, 16);
-    fflush(stdout);
+    pretty_print_array(init_data.tab, array_size);
 
     int start = omp_get_wtime();
     tri_fusion(&init_data);
     int stop = omp_get_wtime();
 
     printf("After sorting:\n");
-    pretty_print_array(init_data.tab, 16);
-    printf("\nTime: %g\n",stop-start);
-
-    fflush(stdout);
+    pretty_print_array(init_data.tab, array_size);
+    printf("\nTime: %g\n", stop - start);
 
     free(init_data.tab);
-
-    exit(EXIT_SUCCESS);
+    sem_destroy(&thread_semaphore);
+    return 0;
 }
