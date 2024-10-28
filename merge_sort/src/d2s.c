@@ -151,7 +151,8 @@ int main(int argc, char *argv[])
      * writing the sorted array in a file
      ***********************************************/
 
-    FILE *f_out = fopen(argv[3], "w");
+    FILE *f_out = fopen(argv[2], "w");
+    printf("File: %s\n", argv[2]);
     if (f_out == NULL)
     {
         perror("Error fopen");

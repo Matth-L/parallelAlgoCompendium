@@ -1,6 +1,6 @@
 all : 
 	make dir
-	make 
+	make test
 
 dir : 
 	mkdir -p bin
@@ -8,12 +8,16 @@ dir :
 
 test:
 	@echo "Running tests"
+	touch resultat_seq resultat_pth resultat_omp
+	@echo "Test sequential"
+	gcc ./src/d2s.c -lgomp
+	./a.out ./results/unsorted_array_100000.txt ./resultat_seq
 	@echo "Test pthread with 16 threads"
-	gcc 16 ./src/d2p.c -lpthread -lgomp
-	touch resultat
-	./a.out 16 ./results/unsorted_array_100000.txt resultat
+	gcc ./src/d2p.c -lpthread -lgomp
+	./a.out 16 ./results/unsorted_array_100000.txt ./resultat_pth
+	@echo "Test openMP with 16 threads"
 	gcc ./src/d2omp.c -fopenmp
-	./a.out 16 ./results/unsorted_array_100000.txt resultat
+	./a.out 16 ./results/unsorted_array_100000.txt ./resultat_omp
 
 array:
 	@echo "creating array";
@@ -32,6 +36,8 @@ benchmark:
 	gcc ./bin/utils.o src/benchmark.c -fopenmp -lpthread -o ./bin/benchmark
 	./bin/benchmark ./results/unsorted_array_100000.txt
 
-clean :
-	rm a.out
-	rm -rf bin
+
+clean:
+	rm -fv a.out
+	rm -fv ./bin/*
+	rm -fv resultat_*
