@@ -11,9 +11,9 @@ compile:
 	gcc ./src/pthread_merge_sort.c -o ./bin/pthread_merge_sort -lm -lpthread -g -lgomp
 	gcc ./src/openMP_merge_sort.c -o ./bin/openMP_merge_sort -lm -fopenmp -g -lgomp
 
-array: 
+array:
 	@echo "creating array";
-	for size in 10 100 1000 10000 100000; do \
+	for size in 100 1000 10000 100000 1000000; do \
 		./src/create_array.sh $$size results; \
 	done
 
@@ -23,6 +23,7 @@ style :
 	find . -type f -name "*.orig" -delete
 
 benchmark :
+	make style
 	make dir
 	make array
 	make compile

@@ -93,8 +93,8 @@ void tri_fusion(int *tab, int n)
     }
 
     int mid = n / 2;
-    int *U = malloc(mid * sizeof(int));
-    int *V = malloc((n - mid) * sizeof(int));
+    int *U = malloc((mid + 1) * sizeof(int));
+    int *V = malloc((n - mid + 1) * sizeof(int));
 
     #pragma omp parallel for
     for (int i = 0; i < mid; i++)
@@ -116,8 +116,6 @@ void tri_fusion(int *tab, int n)
         }
     }
     fusion(U, mid, V, (n - mid), tab);
-    free(U);
-    free(V);
 }
 
 int main(int argc, char *argv[])
@@ -126,8 +124,9 @@ int main(int argc, char *argv[])
 
     /**********************************************
      * reading the file  + init the array
-    ***********************************************/
-    FILE *f = fopen("array.txt", "r");
+     ***********************************************/
+    FILE *f = fopen(argv[2], "r");
+    printf("File: %s\n", argv[2]);
     if (f == NULL)
     {
         perror("Error fopen");
@@ -138,7 +137,7 @@ int main(int argc, char *argv[])
     fscanf(f, "%d", &array_size);
     int *T = malloc(array_size * sizeof(int));
 
-    while(!feof (f))
+    while (!feof(f))
     {
         fscanf(f, "%d", &c);
         T[count] = c;
@@ -149,23 +148,45 @@ int main(int argc, char *argv[])
 
     srand(time(NULL));
 
+
     /**********************************************
      * sorting
     ***********************************************/
 
     printf("Before sorting:\n");
-    pretty_print_array(T, 16);
+    pretty_print_array(T,array_size);
     fflush(stdout);
 
-    int start = omp_get_wtime();
+    double start = omp_get_wtime();
     tri_fusion(T, array_size);
-    int stop = omp_get_wtime();
+    double stop = omp_get_wtime();
 
+    printf("\033[0;32m\nTime: %g s\n\033[0m", stop - start);
     printf("After sorting:\n");
-    pretty_print_array(T, 16);
-    printf("\nTime: %g\n",stop-start);
-
+    pretty_print_array(T, array_size);
     fflush(stdout);
+
+  /**********************************************
+     * writing the sorted array in a file
+     ***********************************************/
+
+    char output_filename[50];
+    snprintf(output_filename, sizeof(output_filename),
+             "sorted_array_%d.txt", array_size);
+
+    FILE *f_out = fopen(output_filename, "w");
+    if (f_out == NULL)
+    {
+        perror("Error fopen");
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < array_size; i++)
+    {
+        fprintf(f_out, "%d\n", T[i]);
+    }
+
+    fclose(f_out);
+    free(T);
 
     exit(EXIT_SUCCESS);
 }

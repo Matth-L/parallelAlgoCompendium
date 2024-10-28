@@ -140,9 +140,9 @@ int main(int argc, char *argv[])
     pretty_print_array(T, array_size);
     fflush(stdout);
 
-    int start = omp_get_wtime();
+    double start = omp_get_wtime();
     tri_fusion(T, array_size);
-    int stop = omp_get_wtime();
+    double stop = omp_get_wtime();
 
     printf("After sorting:\n");
     pretty_print_array(T, array_size);
