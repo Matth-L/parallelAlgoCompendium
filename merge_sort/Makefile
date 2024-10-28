@@ -14,7 +14,7 @@ compile:
 array: 
 	@echo "creating array";
 	for size in 10 100 1000 10000 100000; do \
-		./src/create_array.sh $$size /results; \
+		./src/create_array.sh $$size results; \
 	done
 
 style : 
@@ -23,17 +23,9 @@ style :
 	find . -type f -name "*.orig" -delete
 
 benchmark :
-
-###############################################################################
-
-
-###############################################################################
-# creating array
-
-	@echo "creating array";
-	for size in 10 100 1000 10000 100000; do \
-		./src/create_array.sh $$size; \
-	done
+	make dir
+	make array
+	make compile
 
 ###############################################################################
 
@@ -41,8 +33,7 @@ benchmark :
 
 	@echo "Running sequential merge sort";
 	for size in 10 100 1000 10000 100000; do \
-		echo "Size of array is $$size"; \
-		./bin/sequential_merge_sort unsorted_array_$$size.txt; \
+		./bin/sequential_merge_sort ./results/unsorted_array_$$size.txt; \
 	done
 
 ################################################################################
@@ -60,5 +51,6 @@ benchmark :
 	@echo "Benchmarking done"
 clean :  
 	rm -rvf bin
+	rm -rvf results
 	rm -rvf *.txt
 

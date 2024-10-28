@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
      * reading the file  + init the array
      ***********************************************/
     FILE *f = fopen(argv[1], "r");
+    printf("File: %s\n", argv[1]);
     if (f == NULL)
     {
         perror("Error fopen");
@@ -145,7 +146,7 @@ int main(int argc, char *argv[])
 
     printf("After sorting:\n");
     pretty_print_array(T, array_size);
-    printf("\nTime: %g s\n", stop - start);
+    printf("\033[0;32m\nTime: %g s\n\033[0m", stop - start);
 
     fflush(stdout);
 
