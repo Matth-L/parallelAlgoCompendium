@@ -104,17 +104,24 @@ void tri_fusion(int *tab, int n)
     for (int i = mid; i < n; i++)
         V[i - mid] = tab[i];
 
-    #pragma omp parallel sections
-    {
-        #pragma omp section
-        {
-            tri_fusion(U, mid);
-        }
-        #pragma omp section
-        {
-            tri_fusion(V, (n - mid));
-        }
-    }
+    // #pragma omp parallel sections
+    // {
+    //     #pragma omp section
+    //     {
+    //         tri_fusion(U, mid);
+    //     }
+    //     #pragma omp section
+    //     {
+    //         tri_fusion(V, (n - mid));
+    //     }
+    // }
+
+    #pragma omp task firstprivate (U, mid)
+    tri_fusion(U, mid);
+
+    #pragma omp task firstprivate (V, mid)
+    tri_fusion(V, (n - mid));
+
     fusion(U, mid, V, (n - mid), tab);
 }
 
