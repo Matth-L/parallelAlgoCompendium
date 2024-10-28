@@ -199,33 +199,8 @@ void tri_fusion_openmp(int *tab, int n)
     fusion_openmp(U, mid, V, (n - mid), tab);
 }
 
-
 int main(int argc, char *argv[])
 {
-    /**********************************************
-     * reading the file  + init the array
-     ***********************************************/
-    FILE *f = fopen(argv[1], "r");
-    printf("File: %s\n", argv[1]);
-
-    if (f == NULL)
-    {
-        perror("Error fopen");
-        exit(EXIT_FAILURE);
-    }
-
-    int c, array_size, count = 0;
-    fscanf(f, "%d", &array_size);
-    int *T = malloc(array_size * sizeof(int));
-
-    while (!feof(f))
-    {
-        fscanf(f, "%d", &c);
-        T[count] = c;
-        count++;
-    }
-
-    fclose(f);
 
     int n_try = 10;
     double time_sequential;
@@ -233,70 +208,76 @@ int main(int argc, char *argv[])
     double tab_of_time_openmp[7];
     double tab_of_time_openmp2[7];
 
-    int nb_threads[7] = {1, 2, 4, 8, 16, 24, 48};
+    int nb_threads[6] = {2, 4, 8, 16, 24, 48};
 
-    /**********************************************
-     * BENCHMARK SEQUENTIAL
-     ***********************************************/
-
-    for (int i = 0; i < n_try; i++)
+    for (int n_array_size = 2; n_array_size < 100000; n_array_size *= 2)
     {
-        double start = omp_get_wtime();
-        tri_fusion_sequential(T, array_size);
-        double stop = omp_get_wtime();
-        time_sequential += stop - start;
-    }
-    time_sequential /= n_try;
-    /**********************************************
-     * BENCHMARK PTHREAD
-     ***********************************************/
-    data_t init_data = {array_size, T, 0};
-
-    for (int i = 0; i < 7; i++)
-    {
-        for (int j = 0; j < n_try; j++)
+        int T[n_array_size];
+        for (int i = 0; i < n_array_size; i++)
         {
-            max_threads = nb_threads[i];
-            double start = omp_get_wtime();
-            tri_fusion_pthread(&init_data);
-            double stop = omp_get_wtime();
-            tab_of_time_phtread[i] += stop - start;
+            T[i] = rand() % 100000;
         }
-        tab_of_time_phtread[i] /= n_try; 
-    }
 
-    /**********************************************
-     * BENCHMARK OPENMP
-     ***********************************************/
+        /**********************************************
+         * BENCHMARK SEQUENTIAL
+         ***********************************************/
 
-    for (int i = 0; i < 7; i++)
-    {
-        for (int j = 0; j < n_try; j++)
+        for (int i = 0; i < n_try; i++)
         {
-            max_threads = nb_threads[i];
-            depth = 0;
             double start = omp_get_wtime();
-            tri_fusion_openmp(T, array_size);
+            tri_fusion_sequential(T, n_array_size);
             double stop = omp_get_wtime();
-            tab_of_time_openmp[i] += stop - start;
+            time_sequential += stop - start;
         }
-        tab_of_time_openmp[i] /= n_try;
+        time_sequential /= n_try;
+        printf("\n");
+        printf("\033[0;31mSize of array: %d\033[0m\n", n_array_size);
+        printf("\033[0;34mAverage time for sequential: %f\033[0m\n", time_sequential);
+
+        /**********************************************
+         * BENCHMARK PTHREAD
+         ***********************************************/
+        data_t init_data = {n_array_size, T, 0};
+
+        for (int i = 0; i < 6; i++)
+        {
+            for (int j = 0; j < n_try; j++)
+            {
+                max_threads = nb_threads[i];
+                double start = omp_get_wtime();
+                tri_fusion_pthread(&init_data);
+                double stop = omp_get_wtime();
+                tab_of_time_phtread[i] += stop - start;
+            }
+            tab_of_time_phtread[i] /= n_try;
+        }
+        printf("\033[0;32mAverage time for pthread: \033[0m\n");
+        for (int i = 0; i < 6; i++)
+        {
+            printf("%f ", tab_of_time_phtread[i]);
+        }
+        printf("\n");
+        /**********************************************
+         * BENCHMARK OPENMP
+         ***********************************************/
+
+        for (int i = 0; i < 7; i++)
+        {
+            for (int j = 0; j < n_try; j++)
+            {
+                max_threads = nb_threads[i];
+                depth = 0;
+                double start = omp_get_wtime();
+                tri_fusion_openmp(T, n_array_size);
+                double stop = omp_get_wtime();
+                tab_of_time_openmp[i] += stop - start;
+            }
+            tab_of_time_openmp[i] /= n_try;
+        }
+        printf("\033[0;33mAverage time for openmp: \033[0m\n");
+        for (int i = 0; i < 6; i++)
+        {
+            printf("%f ", tab_of_time_openmp[i]);
+        }
     }
-
-    printf("Average time for sequential: %f\n", time_sequential);
-   
-    printf("Average time for pthread: ");
-    for (int i = 0; i < 7; i++)
-    {
-        printf("%f ", tab_of_time_phtread[i]);
-    }   
-    printf("\n");
-    printf("Average time for openmp: ");
-    for (int i = 0; i < 7; i++)
-    {
-        printf("%f ", tab_of_time_openmp[i]);
-    }
-
-    printf("\n");
-
 }
