@@ -9,24 +9,22 @@ dir :
 compile:
 	make dir
 	@echo "Compiling"
-	gcc -c ./src/utils.c -o ./bin/utils.o
-	gcc ./bin/utils.o ./src/d2s.c -fopenmp -o ./bin/d2s
-	gcc ./bin/utils.o ./src/d2p.c -lpthread -fopenmp -o ./bin/d2p
-	gcc ./bin/utils.o ./src/d2omp.c -fopenmp -o ./bin/d2omp
+	gcc  ./src/d2s.c -fopenmp -o ./bin/d2s
+	gcc  ./src/d2p.c -lpthread -fopenmp -o ./bin/d2p
+	gcc  ./src/d2omp.c -fopenmp -o ./bin/d2omp
 
 test:
 	make dir
 	@echo "Running tests"
 	touch resultat_seq resultat_pth resultat_omp
-	gcc -c ./src/utils.c -o ./bin/utils.o
 	@echo "Test sequential"
-	gcc ./bin/utils.o ./src/d2s.c -fopenmp
+	gcc ./src/d2s.c -fopenmp
 	./a.out ./results/unsorted_array_100000.txt ./resultat_seq
 	@echo "Test pthread with 16 threads"
-	gcc ./bin/utils.o ./src/d2p.c -lpthread -fopenmp
+	gcc ./src/d2p.c -lpthread -fopenmp
 	./a.out 16 ./results/unsorted_array_100000.txt ./resultat_pth
 	@echo "Test openMP with 16 threads"
-	gcc ./bin/utils.o ./src/d2omp.c -fopenmp
+	gcc ./src/d2omp.c -fopenmp
 	./a.out 16 ./results/unsorted_array_100000.txt ./resultat_omp
 
 array:
@@ -38,8 +36,7 @@ array:
 benchmark:
 	make dir
 	@echo "Running benchmark"
-	gcc -c ./src/utils.c -o ./bin/utils.o -lm -g -lgomp
-	gcc ./bin/utils.o src/benchmark.c -fopenmp -lpthread -o ./bin/benchmark
+	gcc src/benchmark.c -fopenmp -lpthread -o ./bin/benchmark
 	./bin/benchmark ./results/unsorted_array_100000.txt 
 
 clean:

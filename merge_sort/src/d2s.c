@@ -1,14 +1,68 @@
 /*******************************************************************************
  * @file d2s.c
  * @brief
- * 
+ *
  ******************************************************************************/
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "utils.h"
 #include <omp.h>
+
+/**
+ * @brief Computes the floor of the base-2 logarithm of n
+ * @param n The integer to compute the logarithm for
+ * @return The floor of the base-2 logarithm of n
+ */
+int log2floor(int n)
+{
+    if (n == 0 || n == 1)
+        return 0;
+
+    return 1 + log2floor(n >> 1);
+}
+
+/**
+ * @brief Prints an array of integers
+ * @param tab The array to print
+ * @param n The size of the array
+ */
+void pretty_print_array(int *tab, int n)
+{
+    printf("[");
+    if (n <= 1000)
+    {
+        for (int i = 0; i < n; i++)
+        {
+            printf("%d", tab[i]);
+            if (i < n - 1)
+            {
+                printf(", ");
+            }
+        }
+    }
+    else
+    {
+        for (int i = 0; i < 100; i++)
+        {
+            printf("%d", tab[i]);
+            if (i < 99)
+            {
+                printf(", ");
+            }
+        }
+        printf(", ... , ");
+        for (int i = n - 100; i < n; i++)
+        {
+            printf("%d", tab[i]);
+            if (i < n - 1)
+            {
+                printf(", ");
+            }
+        }
+    }
+    printf("]\n");
+}
 
 /**
  * @brief Merges two sorted arrays into one sorted array
@@ -17,7 +71,7 @@
  * @param V The second sorted array
  * @param m The size of the second array
  * @param T The resulting merged array
-*/
+ */
 void fusion_sequential(int *U, int n, int *V, int m, int *T)
 {
     // procedure fusion(U[0..n-1],V[0..m-1],T[0..m-1+n-1])
@@ -49,7 +103,7 @@ void fusion_sequential(int *U, int n, int *V, int m, int *T)
  * @brief Sorts an array of integers using parallel merge sort with OpenMP
  * @param tab The array to sort
  * @param n The size of the array
-*/
+ */
 void tri_fusion_sequential(int *tab, int n)
 {
     // procedure tri fusion(T[1..n])
@@ -79,7 +133,6 @@ void tri_fusion_sequential(int *tab, int n)
     tri_fusion_sequential(V, (n - mid));
     fusion_sequential(U, mid, V, (n - mid), tab);
 }
-
 
 int main(int argc, char *argv[])
 {
