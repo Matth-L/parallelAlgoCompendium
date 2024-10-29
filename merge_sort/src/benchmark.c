@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
 {
 
     // the average will be n/10
-    int n_try = 10;
+    int n_try = 100;
     // average time for sequential
     double time_sequential;
     // average time for pthread
@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
          * BENCHMARK OPENMP
          ***********************************************/
 
-        for (int i = 0; i < 7; i++)
+        for (int i = 0; i < 6; i++)
         {
             for (int j = 0; j < n_try; j++)
             {
