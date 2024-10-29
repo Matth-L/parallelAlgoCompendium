@@ -46,3 +46,4 @@ clean:
 	rm -fv a.out
 	rm -fv ./bin/*
 	rm -fv resultat_*
+	rm -rf bin
