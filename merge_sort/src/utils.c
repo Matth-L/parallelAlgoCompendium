@@ -1,10 +1,10 @@
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-
-
-
+/**
+ * @brief Computes the floor of the base-2 logarithm of n
+ * @param n The integer to compute the logarithm for
+ * @return The floor of the base-2 logarithm of n
+ */
 int log2floor(int n)
 {
     if (n == 0 || n == 1)
@@ -13,6 +13,11 @@ int log2floor(int n)
     return 1 + log2floor(n >> 1);
 }
 
+/**
+ * @brief Prints an array of integers
+ * @param tab The array to print
+ * @param n The size of the array
+ */  
 void pretty_print_array(int *tab, int n)
 {
     printf("[");

@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include <omp.h>
 #include <semaphore.h>
+#include "utils.h"
 
 // Global variable to store the maximum number of threads
 int max_threads;
@@ -20,61 +21,6 @@ typedef struct Thread_data
     int *tab;
     int depth; // New depth parameter to control threading depth
 } data_t;
-
-/**
- * @brief Computes the floor of the base-2 logarithm of n
- * @param n The integer to compute the logarithm for
- * @return The floor of the base-2 logarithm of n
- */
-int log2floor(int n)
-{
-    if (n == 0 || n == 1)
-        return 0;
-
-    return 1 + log2floor(n >> 1);
-}
-
-/**
- * @brief Prints an array of integers
- * @param tab The array to print
- * @param n The size of the array
- */  
-void pretty_print_array(int *tab, int n)
-{
-    printf("[");
-    if (n <= 1000)
-    {
-        for (int i = 0; i < n; i++)
-        {
-            printf("%d", tab[i]);
-            if (i < n - 1)
-            {
-                printf(", ");
-            }
-        }
-    }
-    else
-    {
-        for (int i = 0; i < 100; i++)
-        {
-            printf("%d", tab[i]);
-            if (i < 99)
-            {
-                printf(", ");
-            }
-        }
-        printf(", ... , ");
-        for (int i = n - 100; i < n; i++)
-        {
-            printf("%d", tab[i]);
-            if (i < n - 1)
-            {
-                printf(", ");
-            }
-        }
-    }
-    printf("]\n");
-}
 
 /**
  * @brief Merges two sorted arrays into one sorted array
@@ -117,13 +63,12 @@ void *tri_fusion_pthread(void *arg)
     data_t u = {mid, malloc((mid + 1) * sizeof(int)), t->depth + 1};
     data_t v = {t->n - mid, malloc((t->n - mid + 1) * sizeof(int)), t->depth + 1};
 
-    
     for (int i = 0; i < mid; i++)
     {
         u.tab[i] = t->tab[i];
-        v.tab[i] = t->tab[i+mid];
+        v.tab[i] = t->tab[i + mid];
     }
-    
+
     pthread_t child;
     if (t->depth < log2floor(max_threads)) // Limit threading to top 3 levels
     {
@@ -201,8 +146,8 @@ int main(int argc, char *argv[])
     fflush(stdout);
 
     /**********************************************
-       * Writing the sorted array to a file
-       ***********************************************/
+     * Writing the sorted array to a file
+     ***********************************************/
 
     FILE *f_out = fopen(argv[3], "w");
     if (f_out == NULL)

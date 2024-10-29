@@ -7,50 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "utils.h"
 #include <omp.h>
-
-
-/**
- * @brief Prints an array of integers
- * @param tab The array to print
- * @param n The size of the array
-*/
-void pretty_print_array(int *tab, int n)
-{
-    printf("[");
-    if (n < 1000)
-    {
-        for (int i = 0; i < n; i++)
-        {
-            printf("%d", tab[i]);
-            if (i < n - 1)
-            {
-                printf(", ");
-            }
-        }
-    }
-    else
-    {
-        for (int i = 0; i < 100; i++)
-        {
-            printf("%d", tab[i]);
-            if (i < 99)
-            {
-                printf(", ");
-            }
-        }
-        printf(", ... , ");
-        for (int i = n - 100; i < n; i++)
-        {
-            printf("%d", tab[i]);
-            if (i < n - 1)
-            {
-                printf(", ");
-            }
-        }
-    }
-    printf("]\n");
-}
 
 /**
  * @brief Merges two sorted arrays into one sorted array
