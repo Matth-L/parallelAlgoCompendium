@@ -7,6 +7,7 @@ dir :
 	mkdir -p results
 
 test:
+	make dir
 	@echo "Running tests"
 	touch resultat_seq resultat_pth resultat_omp
 	@echo "Test sequential"
@@ -25,16 +26,12 @@ array:
 		./src/create_array.sh $$size results; \
 	done
 
-style : 
-	astyle -A1 *.c --recursive
-	@if ls *.h >/dev/null 2>&1; then astyle -A1 *.h; fi
-	find . -type f -name "*.orig" -delete
-
 benchmark:
+	make dir
 	@echo "Running benchmark"
 	gcc -c ./src/utils.c -o ./bin/utils.o -lm -g -lgomp
 	gcc ./bin/utils.o src/benchmark.c -fopenmp -lpthread -o ./bin/benchmark
-	./bin/benchmark ./results/unsorted_array_100000.txt
+	./bin/benchmark ./results/unsorted_array_100000.txt 
 
 
 clean:
