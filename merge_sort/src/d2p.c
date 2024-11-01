@@ -38,7 +38,7 @@ int log2floor(int n)
  * @brief Prints an array of integers
  * @param tab The array to print
  * @param n The size of the array
- */  
+ */
 void pretty_print_array(int *tab, int n)
 {
     printf("[");
@@ -75,8 +75,6 @@ void pretty_print_array(int *tab, int n)
     }
     printf("]\n");
 }
-
-
 
 /**
  * @brief Merges two sorted arrays into one sorted array
