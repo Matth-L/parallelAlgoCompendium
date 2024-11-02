@@ -17,19 +17,6 @@
 #include <omp.h>
 
 /**
- * @brief Computes the floor of the base-2 logarithm of n
- * @param n The integer to compute the logarithm for
- * @return The floor of the base-2 logarithm of n
- */
-int log2floor(int n)
-{
-    if (n == 0 || n == 1)
-        return 0;
-
-    return 1 + log2floor(n >> 1);
-}
-
-/**
  * @brief Prints an array of integers
  * @param tab The array to print
  * @param n The size of the array
@@ -97,71 +84,66 @@ void fusion(int *U, int n, int *V, int m, int *T)
     }
 }
 
-/**
- * PROMPTED
- * @brief Sorts an array of integers using parallel merge sort with OpenMP
- * @param tab The array to sort
- * @param n The size of the array
- */
 void tri_insertion(int *tab, int n)
 {
     for (int i = 1; i < n; i++)
     {
-        int key = tab[i];
-        int j = i - 1;
-        while (j >= 0 && tab[j] > key)
+        int x = tab[i];
+        int j = i;
+        while (j > 0 && tab[j - 1] > x)
         {
-            tab[j + 1] = tab[j];
+            tab[j] = tab[j - 1];
             j--;
         }
-        tab[j + 1] = key;
+        tab[j] = x;
     }
 }
 
 void tri_fusion(int *tab, int n)
 {
-    if (n < 1000)
+    if (n < 2)
+        return;
+    else if (n <= 10000)
     {
         tri_insertion(tab, n);
         return;
     }
+
     // Split the array into two parts
     int mid = n / 2;
     int *U = malloc((mid + 1) * sizeof(int));
     int *V = malloc((n - mid + 1) * sizeof(int));
-    if (n < 2)
-        return;
 
+#pragma omp parallel sections
+    {
+#pragma omp section
+        for (int i = 0; i < mid; i++)
+        {
+            U[i] = tab[i];
+        }
+
+#pragma omp section
+        for (int i = 0; i < n - mid; i++)
+        {
+            V[i] = tab[i + mid];
+        }
+    }
 #pragma omp parallel
     {
 #pragma omp single
         {
-
-#pragma omp task
-            {
-                for (int i = 0; i < mid; i++)
-                {
-                    U[i] = tab[i];
-                }
-            }
-
-#pragma omp task
-            {
-                for (int i = 0; i < n - mid; i++)
-                {
-                    V[i] = tab[i + mid];
-                }
-            }
-
-#pragma omp taskwait
-
 #pragma omp task
             tri_fusion(U, mid);
-            tri_fusion(V, (n - mid));
+            tri_fusion(V, n - mid);
         }
-
-        fusion(U, mid, V, (n - mid), tab);
     }
+
+    // Merge the sorted halves
+    fusion(U, mid, V, n - mid, tab);
+
+    // Free temporary ys
+    free(U);
+    free(V);
 }
 
 /**
@@ -172,8 +154,10 @@ void tri_fusion(int *tab, int n)
  */
 int main(int argc, char *argv[])
 {
+    omp_set_num_threads(omp_get_max_threads()); 
 
-    int array_size = 2000000000; //  2 000 000 000
+    int array_size = 200000000; //   200 000 000
+
     int *T = malloc(array_size * sizeof(int));
     /**********************************************
      * Sorting
@@ -181,7 +165,6 @@ int main(int argc, char *argv[])
 
     printf("Before sorting:\n");
     pretty_print_array(T, array_size);
-    fflush(stdout);
     printf("\n");
 
     double start = omp_get_wtime();
@@ -190,10 +173,9 @@ int main(int argc, char *argv[])
 
     printf("After sorting:\n");
     pretty_print_array(T, array_size);
-    printf("\n\033[0;31mOpenMP merge sort: with array size of %i\033[0m",
-           array_size);
-    printf("\033[0;32m\nTime: %g s\n\033[0m", stop - start);
     fflush(stdout);
+
+    printf("Time: %fs\n", stop - start);
 
     exit(EXIT_SUCCESS);
 }

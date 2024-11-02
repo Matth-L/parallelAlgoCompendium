@@ -44,3 +44,7 @@ clean:
 	rm -fv ./bin/*
 	rm -fv resultat_*
 	rm -rf bin
+
+matth: 
+	gcc ./src/d2omp_matthias.c  -fopenmp -o ./d2omp_matthias
+	gcc ./src/d2p_matthias.c -lpthread -fopenmp -o ./d2p_matthias 
