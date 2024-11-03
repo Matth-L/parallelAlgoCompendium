@@ -6,12 +6,12 @@ all:
 benchmark:
 	make all
 	@echo "Benchmarking d2p and d2omp"
-	n=4; \
-	while [ "$$n" -lt 100000000 ]; do \
-		n=$$(( n * 2 )); \
+	n=2; \
+	while [ "$$n" -lt 200000000 ]; do \
 		echo "n = $$n"; \
 		./d2p $$n; \
 		./d2omp $$n; \
+		n=$$(( n * 2 )); \
 	done
 
 clean : 

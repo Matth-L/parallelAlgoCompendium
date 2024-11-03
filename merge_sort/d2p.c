@@ -10,6 +10,8 @@
 #include <omp.h>
 #include <semaphore.h>
 
+#define INSERTION_SORT_THRESHOLD 10000
+
 // Data structure to pass to the thread function
 typedef struct Thread_data
 {
@@ -100,6 +102,24 @@ void fusion(data_t u, data_t v, int *T)
     }
 }
 
+struct two_data
+{
+    data_t *to_copy;
+    data_t *to_paste;
+};
+
+void *copy_array(void *arg)
+{
+    struct two_data *data = (struct two_data *)arg;
+    data_t *to_copy = data->to_copy;
+    data_t *to_paste = data->to_paste;
+    for (int i = 0; i < (to_copy->n) / 2; i++)
+    {
+        to_paste->tab[i] = to_copy->tab[i];
+    }
+    return NULL;
+}
+
 /**
  * @brief Sorts an array of integers using parallel merge sort with pthread
  * @param arg The data containing the array to sort and its size
@@ -109,7 +129,7 @@ void *tri_fusion(void *arg)
     data_t *t = (data_t *)arg;
     if (t->n < 2)
         return NULL;
-    else if (t->n < 10000)
+    else if (t->n <= INSERTION_SORT_THRESHOLD)
     {
         tri_insertion(*t);
         return NULL;
@@ -120,11 +140,30 @@ void *tri_fusion(void *arg)
     data_t u = {mid, malloc((mid + 1) * sizeof(int))};
     data_t v = {t->n - mid, malloc((t->n - mid + 1) * sizeof(int))};
 
+    if (u.tab == NULL || v.tab == NULL)
+    {
+        perror("malloc : u.tab or v.tab error");
+        exit(EXIT_FAILURE);
+    }
+
+    // parallel copy
+    struct two_data u_data = {t, &u};
+
+    pthread_t copy_u;
+
+    // thread copy u
+    if (pthread_create(&copy_u, NULL, copy_array, &u_data) != 0)
+    {
+        perror("pthread_create error");
+        exit(EXIT_FAILURE);
+    }
+    // master thread copy v
     for (int i = 0; i < mid; i++)
     {
-        u.tab[i] = t->tab[i];
         v.tab[i] = t->tab[i + mid];
     }
+
+    pthread_join(copy_u, NULL);
 
     pthread_t child;
 
@@ -151,6 +190,11 @@ int main(int argc, char *argv[])
 
     int array_size = atoi(argv[1]);
     int *T = malloc(array_size * sizeof(int));
+    if (T == NULL)
+    {
+        perror("malloc : T error  ");
+        exit(EXIT_FAILURE);
+    }
 
     data_t init_data = {array_size, T};
 
@@ -159,7 +203,7 @@ int main(int argc, char *argv[])
     double stop = omp_get_wtime();
 
     printf("\033[0;32m\nPthread: ");
-    printf("\033[0;32m\nTime: %g s\n\033[0m", stop - start);
+    printf("\033[0;32m\nTime: %g s\033[0m", stop - start);
 
     free(init_data.tab);
 

@@ -114,34 +114,41 @@ void tri_fusion(int *tab, int n)
     int *U = malloc((mid + 1) * sizeof(int));
     int *V = malloc((n - mid + 1) * sizeof(int));
 
+    if (U == NULL || V == NULL)
+    {
+        perror("malloc : U or V error");
+        exit(EXIT_FAILURE);
+    }
+
+// every thread has access to this part of the code
 #pragma omp parallel sections
     {
+// master gets one, one slave gets the other
 #pragma omp section
         for (int i = 0; i < mid; i++)
         {
             U[i] = tab[i];
         }
-
 #pragma omp section
         for (int i = 0; i < n - mid; i++)
         {
             V[i] = tab[i + mid];
         }
     }
+
 #pragma omp parallel
     {
 #pragma omp single
         {
+// same here
 #pragma omp task
             tri_fusion(U, mid);
             tri_fusion(V, n - mid);
         }
     }
 
-    // Merge the sorted halves
     fusion(U, mid, V, n - mid, tab);
 
-    // Free temporary ys
     free(U);
     free(V);
 }
@@ -159,17 +166,16 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Usage: %s <size_of_array>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-    // run with max threads 
-    omp_set_num_threads(omp_get_max_threads()); 
+    // run with max threads
+    omp_set_num_threads(omp_get_max_threads());
 
     int array_size = atoi(argv[1]);
     int *T = malloc(array_size * sizeof(int));
-
-    /**********************************************
-     * Sorting
-     ***********************************************/
-
-
+    if (T == NULL)
+    {
+        perror("malloc : T error");
+        exit(EXIT_FAILURE);
+    }
 
     double start = omp_get_wtime();
     tri_fusion(T, array_size);
@@ -177,6 +183,7 @@ int main(int argc, char *argv[])
 
     printf("\033[0;32m\nopenMP: ");
     printf("\033[0;32m\nTime: %g s\n\033[0m", stop - start);
+    printf("\n");
 
     exit(EXIT_SUCCESS);
 }
