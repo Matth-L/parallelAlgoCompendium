@@ -12,12 +12,28 @@
 
 #define INSERTION_SORT_THRESHOLD 10000
 
+int max_depth = 0;
+
 // Data structure to pass to the thread function
 typedef struct Thread_data
 {
     int n;
     int *tab;
 } data_t;
+
+
+/**
+ * @brief Computes the floor of the base-2 logarithm of n
+ * @param n The integer to compute the logarithm for
+ * @return The floor of the base-2 logarithm of n
+ */
+int log2floor(int n)
+{
+    if (n == 0 || n == 1)
+        return 0;
+
+    return 1 + log2floor(n >> 1);
+}
 
 /**
  * @brief Prints an array of integers
@@ -129,7 +145,7 @@ void *tri_fusion(void *arg)
     data_t *t = (data_t *)arg;
     if (t->n < 2)
         return NULL;
-    else if (t->n <= INSERTION_SORT_THRESHOLD)
+    else if (t->n > log2floor(max_depth))  // <= INSERTION_SORT_THRESHOLD)
     {
         tri_insertion(*t);
         return NULL;
@@ -188,7 +204,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    int max_thread = omp_get_max_threads();
+    max_depth = log2floor(omp_get_max_threads());
     int array_size = atoi(argv[1]);
     int *T = malloc(array_size * sizeof(int));
     if (T == NULL)
