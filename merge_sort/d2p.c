@@ -12,7 +12,7 @@
 
 #define INSERTION_SORT_THRESHOLD 10000
 
-int max_depth = 0;
+sem_t max_depth;
 
 // Data structure to pass to the thread function
 typedef struct Thread_data
@@ -20,7 +20,6 @@ typedef struct Thread_data
     int n;
     int *tab;
 } data_t;
-
 
 /**
  * @brief Computes the floor of the base-2 logarithm of n
@@ -143,9 +142,10 @@ void *copy_array(void *arg)
 void *tri_fusion(void *arg)
 {
     data_t *t = (data_t *)arg;
+    int value_sem;
     if (t->n < 2)
         return NULL;
-    else if (t->n > log2floor(max_depth))  // <= INSERTION_SORT_THRESHOLD)
+    else if (t->n > log2floor(sem_getvalue(&max_depth, &value_sem))) // <= INSERTION_SORT_THRESHOLD)
     {
         tri_insertion(*t);
         return NULL;
@@ -154,7 +154,7 @@ void *tri_fusion(void *arg)
     int mid = t->n / 2;
 
     data_t u = {mid, malloc((mid + 1) * sizeof(int))};
-    data_t v = {t->n - mid, malloc((t->n - mid + 2) * sizeof(int))};
+    data_t v = {t->n - mid, malloc((t->n - mid + 1) * sizeof(int))};
 
     if (u.tab == NULL || v.tab == NULL)
     {
@@ -189,10 +189,19 @@ void *tri_fusion(void *arg)
         exit(EXIT_FAILURE);
     }
     tri_fusion(&v);
+    sem_post(&max_depth);
     pthread_join(child, NULL);
     fusion(u, v, t->tab);
-
     return NULL;
+}
+
+void fill_array(int *tab, int n)
+{
+    srand(time(NULL));
+    for (int i = 0; i < n; i++)
+    {
+        tab[i] = rand() % 100;
+    }
 }
 
 int main(int argc, char *argv[])
@@ -204,7 +213,9 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    max_depth = log2floor(omp_get_max_threads());
+    sem_init(&max_depth, 0, 0);
+    omp_set_num_threads(omp_get_max_threads());
+
     int array_size = atoi(argv[1]);
     int *T = malloc(array_size * sizeof(int));
     if (T == NULL)
@@ -220,7 +231,7 @@ int main(int argc, char *argv[])
     double stop = omp_get_wtime();
 
     printf("\033[0;32m\nPthread: ");
-    printf("\033[0;32m\nTime: %g s\033[0m", stop - start);
+    printf("\033[0;32m\nTime: %g s\033[0m\n", stop - start);
 
     free(init_data.tab);
 

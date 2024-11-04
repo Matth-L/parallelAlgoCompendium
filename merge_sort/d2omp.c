@@ -169,11 +169,6 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-#pragma omp parallel
-    {
-        printf("threads numbers : %i\n", omp_get_num_threads());
-    }
-
     int array_size = atoi(argv[1]);
     int *T = malloc(array_size * sizeof(int));
     if (T == NULL)

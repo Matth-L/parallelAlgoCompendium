@@ -4,17 +4,25 @@ all:
 
 
 
-benchmark:
+benchmark_pthread:
 	make all
 	@echo "Benchmarking d2p and d2omp"
 	n=2; \
 	while [ "$$n" -lt 200000000 ]; do \
 		echo "n = $$n"; \
 		./d2p $$n; \
-		OMP_NUM_THREADS=48 ./d2omp $$n; \
 		n=$$(( n * 2 )); \
 	done
 
+benchmark_openmp:
+	make all
+	@echo "Benchmarking d2p and d2omp"
+	n=2; \
+	while [ "$$n" -lt 200000000 ]; do \
+		echo "n = $$n"; \
+		./d2omp $$n; \
+		n=$$(( n * 2 )); \
+	done
 clean : 
 	rm -fv a.out
 	rm -fv d2p d2omp
