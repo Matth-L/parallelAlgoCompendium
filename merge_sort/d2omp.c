@@ -16,6 +16,8 @@
 #include <limits.h>
 #include <omp.h>
 
+#define INSERTION_SORT_THRESHOLD 10000
+
 /**
  * @brief Prints an array of integers
  * @param tab The array to print
@@ -103,7 +105,7 @@ void tri_fusion(int *tab, int n)
 {
     if (n < 2)
         return;
-    else if (n <= 10000)
+    else if (n <= INSERTION_SORT_THRESHOLD)
     {
         tri_insertion(tab, n);
         return;
