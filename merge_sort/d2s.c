@@ -1,8 +1,9 @@
 /*******************************************************************************
  * @file d2s.c
- * @brief
+ * @brief  Implementation of sequential merge sort
  *
  ******************************************************************************/
+
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
