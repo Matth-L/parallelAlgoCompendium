@@ -168,8 +168,11 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Usage: %s <size_of_array>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-    // run with max threads
-    omp_set_num_threads(omp_get_max_threads());
+
+#pragma omp parallel
+    {
+        printf("threads numbers : %i\n", omp_get_num_threads());
+    }
 
     int array_size = atoi(argv[1]);
     int *T = malloc(array_size * sizeof(int));

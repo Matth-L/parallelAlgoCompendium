@@ -3,6 +3,7 @@ all:
 	gcc -Wall -Wextra -g -fopenmp d2omp.c -o d2omp
 
 
+
 benchmark:
 	make all
 	@echo "Benchmarking d2p and d2omp"
@@ -10,7 +11,7 @@ benchmark:
 	while [ "$$n" -lt 200000000 ]; do \
 		echo "n = $$n"; \
 		./d2p $$n; \
-		./d2omp $$n; \
+		OMP_NUM_THREADS=48 ./d2omp $$n; \
 		n=$$(( n * 2 )); \
 	done
 

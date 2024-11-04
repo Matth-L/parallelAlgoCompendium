@@ -138,7 +138,7 @@ void *tri_fusion(void *arg)
     int mid = t->n / 2;
 
     data_t u = {mid, malloc((mid + 1) * sizeof(int))};
-    data_t v = {t->n - mid, malloc((t->n - mid + 1) * sizeof(int))};
+    data_t v = {t->n - mid, malloc((t->n - mid + 2) * sizeof(int))};
 
     if (u.tab == NULL || v.tab == NULL)
     {
@@ -188,6 +188,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
+    int max_thread = omp_get_max_threads();
     int array_size = atoi(argv[1]);
     int *T = malloc(array_size * sizeof(int));
     if (T == NULL)
