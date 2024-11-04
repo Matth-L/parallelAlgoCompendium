@@ -1,50 +1,29 @@
-all : 
-	make dir
-	make test
+all:
+	gcc -Wall -Wextra -g -fopenmp -lpthread d2p.c -o d2p 
+	gcc -Wall -Wextra -g -fopenmp d2omp.c -o d2omp
 
-dir : 
-	mkdir -p bin
-	mkdir -p results
 
-compile:
-	make dir
-	@echo "Compiling"
-	gcc  ./src/d2s.c -fopenmp -o ./bin/d2s
-	gcc  ./src/d2p.c -lpthread -fopenmp -o ./bin/d2p
-	gcc  ./src/d2omp.c -fopenmp -o ./bin/d2omp
 
-test:
-	make dir
-	@echo "Running tests"
-	touch resultat_seq resultat_pth resultat_omp
-	@echo "Test sequential"
-	gcc ./src/d2s.c -fopenmp
-	./a.out ./results/unsorted_array_100000.txt ./resultat_seq
-	@echo "Test pthread with 16 threads"
-	gcc ./src/d2p.c -lpthread -fopenmp
-	./a.out 16 ./results/unsorted_array_100000.txt ./resultat_pth
-	@echo "Test openMP with 16 threads"
-	gcc ./src/d2omp.c -fopenmp
-	./a.out 16 ./results/unsorted_array_100000.txt ./resultat_omp
-
-array:
-	@echo "creating array";
-	for size in 10 10000 1000000 ; do \
-		./src/create_array.sh $$size results; \
+benchmark_pthread:
+	make all
+	@echo "Benchmarking d2p and d2omp"
+	n=2; \
+	while [ "$$n" -lt 200000000 ]; do \
+		echo "n = $$n"; \
+		export OMP_NUM_THREADS=48; ./d2p $$n; \
+		n=$$(( n * 2 )); \
 	done
 
-benchmark:
-	make dir
-	@echo "Running benchmark"
-	gcc src/benchmark.c -fopenmp -lpthread -o ./bin/benchmark
-	./bin/benchmark ./results/unsorted_array_100000.txt 
-
-clean:
+benchmark_openmp:
+	make all
+	@echo "Benchmarking d2p and d2omp"
+	n=2; \
+	while [ "$$n" -lt 200000000 ]; do \
+		echo "n = $$n"; \
+		export OMP_NUM_THREADS=48; ./d2omp $$n; \
+		n=$$(( n * 2 )); \
+	done
+clean : 
 	rm -fv a.out
-	rm -fv ./bin/*
-	rm -fv resultat_*
-	rm -rf bin
+	rm -fv d2p d2omp
 
-matth: 
-	gcc ./src/d2omp_matthias.c  -fopenmp -o ./d2omp_matthias
-	gcc ./src/d2p_matthias.c -lpthread -fopenmp -o ./d2p_matthias 
