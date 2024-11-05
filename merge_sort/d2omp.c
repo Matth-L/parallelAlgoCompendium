@@ -61,15 +61,6 @@ void pretty_print_array(int *tab, int n)
     printf("]\n");
 }
 
-/**
- * @brief Merges two sorted arrays into one sorted array
- * @param U The first sorted array
- * @param n The size of the first array
- * @param V The second sorted array
- * @param m The size of the second array
- * @param T The resulting merged array
- */
-
 /**********************************************
  * @brief Merges two sorted arrays into one sorted array
  * @param U The first sorted array
