@@ -1,3 +1,9 @@
+/**********************************************
+ * @file find_n.c
+ * @brief The goal of this program is to find the smallest n such
+ * that the parallel version of the merge sort is faster than the
+ * sequential version.
+ ***********************************************/
 
 #include <omp.h> // for omp_get_wtime
 #include <time.h>
