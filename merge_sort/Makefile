@@ -2,10 +2,10 @@ all:
 	gcc -Wall -Wextra -g -fopenmp d2s.c -o d2s
 	gcc -Wall -Wextra -g -fopenmp -lpthread d2p.c -o d2p 
 	gcc -Wall -Wextra -g -fopenmp d2omp.c -o d2omp
-	touch results.txt
 
 test : 
 	make all 
+	touch results.txt
 	./create_array.sh 20 
 	./d2s unsorted_array_20.txt results.txt
 	export OMP_NUM_THREADS=48; ./d2p unsorted_array_20.txt results.txt
@@ -45,3 +45,6 @@ clean :
 	rm -fv d2p d2omp d2s
 	rm *.txt
 
+find_n :
+	gcc find_n.c -fopenmp -lpthread
+	
