@@ -376,5 +376,5 @@ int main(int argc, char *argv[])
         write_output_file(argv[2], array_size, T);
     }
     free(T);
-    return 0;
+    exit(EXIT_SUCCESS);
 }

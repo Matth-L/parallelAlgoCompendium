@@ -9,6 +9,7 @@ test :
 	./create_array.sh 20 
 	./d2s unsorted_array_20.txt results.txt
 	export OMP_NUM_THREADS=48; ./d2p unsorted_array_20.txt results.txt
+	export OMP_NUM_THREADS=48; ./d2omp unsorted_array_20.txt results.txt
 
 benchmark_sequential:
 	make all
