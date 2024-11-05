@@ -237,14 +237,13 @@ int main(int argc, char *argv[])
     /**********************************************
      * Print before sorting
      ***********************************************/
-    printf("Before sorting:\n");
+    printf("\nBefore sorting:\n");
     pretty_print_array(T, array_size);
     fflush(stdout);
 
     /**********************************************
      * Sort
      ***********************************************/
-
     double start = omp_get_wtime();
     tri_fusion(T, array_size);
     double stop = omp_get_wtime();
@@ -257,10 +256,14 @@ int main(int argc, char *argv[])
     printf("\033[0;32m\nTime: %g s\n\033[0m", stop - start);
     fflush(stdout);
 
-    /**********************************************
-     * Writing the sorted array to a file
-     ***********************************************/
-    write_output_file(argv[2], array_size, T);
+    if (argc == 3)
+    {
+        /**********************************************
+         * Writing the sorted array to a file
+         ***********************************************/
+        write_output_file(argv[2], array_size, T);
+    }
+
     free(T);
 
     exit(EXIT_SUCCESS);

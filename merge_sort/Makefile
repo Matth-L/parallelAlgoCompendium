@@ -8,10 +8,21 @@ test :
 	make all 
 	./create_array.sh 20 
 	./d2s unsorted_array_20.txt results.txt
+	export OMP_NUM_THREADS=48; ./d2p unsorted_array_20.txt results.txt
+
+benchmark_sequential:
+	make all
+	@echo "Benchmarking d2s"
+	n=2; \
+	while [ "$$n" -lt 20000000 ]; do \
+		echo "n = $$n"; \
+		./d2s $$n; \
+		n=$$(( n * 2 )); \
+	done
 
 benchmark_pthread:
 	make all
-	@echo "Benchmarking d2p and d2omp"
+	@echo "Benchmarking d2p"
 	n=2; \
 	while [ "$$n" -lt 200000000 ]; do \
 		echo "n = $$n"; \
@@ -21,7 +32,7 @@ benchmark_pthread:
 
 benchmark_openmp:
 	make all
-	@echo "Benchmarking d2p and d2omp"
+	@echo "Benchmarking d2omp"
 	n=2; \
 	while [ "$$n" -lt 200000000 ]; do \
 		echo "n = $$n"; \
