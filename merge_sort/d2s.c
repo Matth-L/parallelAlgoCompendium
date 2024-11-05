@@ -11,12 +11,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-/**
+/**********************************************
  * @brief Prints the first 100 and last 100 elements of an array
  * if the array is larger than 1000 elements
  * @param tab The array to print
  * @param n The size of the array
- */
+ ***********************************************/
 void pretty_print_array(int *tab, int n)
 {
     printf("[");
@@ -46,26 +46,28 @@ void pretty_print_array(int *tab, int n)
     printf("]\n");
 }
 
-/**
+/**********************************************
  * @brief Merges two sorted arrays into one sorted array
  * @param U The first sorted array
  * @param n The size of the first array
  * @param V The second sorted array
  * @param m The size of the second array
  * @param T The resulting merged array
- */
+ *
+ * @code
+ * Algorithm :
+ * procedure fusion(U[0..n-1],V[0..m-1],T[0..m-1+n-1])
+ * i=j=0
+ * U[n]=V[m]=∞
+ * pour k=0 `a m-1+n-1 faire
+ *  si U[i]<V[j] alors
+ *      T[k]=U[i++]
+ *  sinon
+ *      T[k]=V[j++]
+ * @endcode
+ ***********************************************/
 void fusion(int *U, int n, int *V, int m, int *T)
 {
-    // Algorithm :
-    // procedure fusion(U[0..n-1],V[0..m-1],T[0..m-1+n-1])
-    // i=j=0
-    // U[n]=V[m]=∞
-    // pour k=0 `a m-1+n-1 faire
-    // si U[i]<V[j] alors
-    // T[k]=U[i++]
-    // sinon
-    // T[k]=V[j++]
-
     int i = 0, j = 0;
     U[n] = INT_MAX;
     V[m] = INT_MAX;
@@ -82,7 +84,7 @@ void fusion(int *U, int n, int *V, int m, int *T)
     }
 }
 
-/**
+/**********************************************
  * @brief Sorts an array of integers using recursive merge sort
  * @param tab The array to sort
  * @param n The size of the array
@@ -98,7 +100,7 @@ void fusion(int *U, int n, int *V, int m, int *T)
  *      tri fusion(V)
  *      fusion(U,V,T)
  * @endcode
- */
+ ***********************************************/
 void tri_fusion(int *tab, int n)
 {
     if (n < 2)
