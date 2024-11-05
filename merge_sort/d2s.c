@@ -1,7 +1,9 @@
 /*******************************************************************************
  * @file d2s.c
+
  * @brief Sequential merge sort, algorithm from the course "Parallel programming
  * on parallel and distributed systems" at the UQAC.
+ *
  ******************************************************************************/
 #include <omp.h> // for omp_get_wtime
 #include <limits.h>

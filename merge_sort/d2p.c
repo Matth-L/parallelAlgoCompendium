@@ -1,7 +1,9 @@
 /*******************************************************************************
  * @file d2p.c
  * @brief Implementation of parallel merge sort using pthread
+ * 
  ******************************************************************************/
+
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,6 +78,10 @@ void pretty_print_array(int *tab, int n)
     printf("]\n");
 }
 
+/**
+ * @brief Sorts an array of integers using insertion sort
+ * @param t The data containing the array to sort
+ */
 void tri_insertion(data_t t)
 {
     int n = t.n;
@@ -91,6 +97,7 @@ void tri_insertion(data_t t)
         t.tab[j] = x;
     }
 }
+
 /**
  * @brief Merges two sorted arrays into one sorted array
  * @param u The first sorted array
@@ -123,6 +130,10 @@ struct two_data
     data_t *to_paste;
 };
 
+/**
+ * @brief Copies the first half of an array into another array
+ * @param arg The data containing the array to copy and the array to paste into
+ */
 void *copy_array(void *arg)
 {
     struct two_data *data = (struct two_data *)arg;
@@ -162,18 +173,18 @@ void *tri_fusion(void *arg)
         exit(EXIT_FAILURE);
     }
 
-    // parallel copy
+    // Parallel copy of the array
     struct two_data u_data = {t, &u};
 
     pthread_t copy_u;
 
-    // thread copy u
+    // Thread to copy the first half of u
     if (pthread_create(&copy_u, NULL, copy_array, &u_data) != 0)
     {
         perror("pthread_create error");
         exit(EXIT_FAILURE);
     }
-    // master thread copy v
+    // Master thread copies the second half of v
     for (int i = 0; i < mid; i++)
     {
         v.tab[i] = t->tab[i + mid];
@@ -183,11 +194,13 @@ void *tri_fusion(void *arg)
 
     pthread_t child;
 
+    // Create a new thread to sort the second half of u
     if (pthread_create(&child, NULL, tri_fusion, &u) != 0)
     {
         perror("pthread_create error");
         exit(EXIT_FAILURE);
     }
+    // Master thread sorts the second half of v
     tri_fusion(&v);
     sem_post(&max_depth);
     pthread_join(child, NULL);
@@ -195,6 +208,11 @@ void *tri_fusion(void *arg)
     return NULL;
 }
 
+/**
+ * @brief Fills an array with random integers
+ * @param tab The array to fill
+ * @param n The size of the array
+ */
 void fill_array(int *tab, int n)
 {
     srand(time(NULL));
@@ -206,13 +224,14 @@ void fill_array(int *tab, int n)
 
 int main(int argc, char *argv[])
 {
-
+    // Check if the number of arguments is correct
     if (argc != 2)
     {
         fprintf(stderr, "Usage: %s <size_of_array>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
+    // Initialize the semaphore
     sem_init(&max_depth, 0, 0);
     omp_set_num_threads(omp_get_max_threads());
 

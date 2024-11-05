@@ -15,7 +15,7 @@ benchmark_pthread:
 	n=2; \
 	while [ "$$n" -lt 200000000 ]; do \
 		echo "n = $$n"; \
-		./d2p $$n; \
+		export OMP_NUM_THREADS=48; ./d2p $$n; \
 		n=$$(( n * 2 )); \
 	done
 
@@ -25,7 +25,7 @@ benchmark_openmp:
 	n=2; \
 	while [ "$$n" -lt 200000000 ]; do \
 		echo "n = $$n"; \
-		./d2omp $$n; \
+		export OMP_NUM_THREADS=48; ./d2omp $$n; \
 		n=$$(( n * 2 )); \
 	done
 clean : 

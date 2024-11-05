@@ -86,6 +86,11 @@ void fusion(int *U, int n, int *V, int m, int *T)
     }
 }
 
+/**
+ * @brief Sorts an array of integers using insertion sort
+ * @param tab The array to sort
+ * @param n The size of the array
+ */
 void tri_insertion(int *tab, int n)
 {
     for (int i = 1; i < n; i++)
@@ -101,6 +106,11 @@ void tri_insertion(int *tab, int n)
     }
 }
 
+/**
+ * @brief Sorts an array of integers using parallel merge sort with OpenMP
+ * @param tab The array to sort
+ * @param n The size of the array
+ */
 void tri_fusion(int *tab, int n)
 {
     if (n < 2)
@@ -122,10 +132,10 @@ void tri_fusion(int *tab, int n)
         exit(EXIT_FAILURE);
     }
 
-// every thread has access to this part of the code
+// Every thread has access to this part of the code
 #pragma omp parallel sections
     {
-// master gets one, one slave gets the other
+// Master gets one, one slave gets the other
 #pragma omp section
         for (int i = 0; i < mid; i++)
         {
@@ -142,7 +152,7 @@ void tri_fusion(int *tab, int n)
     {
 #pragma omp single
         {
-// same here
+// Same here
 #pragma omp task
             tri_fusion(U, mid);
             tri_fusion(V, n - mid);
@@ -151,6 +161,7 @@ void tri_fusion(int *tab, int n)
 
     fusion(U, mid, V, n - mid, tab);
 
+    // Free the memory
     free(U);
     free(V);
 }
@@ -163,12 +174,14 @@ void tri_fusion(int *tab, int n)
  */
 int main(int argc, char *argv[])
 {
+    // Check if the number of arguments is correct
     if (argc != 2)
     {
         fprintf(stderr, "Usage: %s <size_of_array>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-    // run with max threads
+
+    // Run with max threads
     omp_set_num_threads(omp_get_max_threads());
 
     int array_size = atoi(argv[1]);
