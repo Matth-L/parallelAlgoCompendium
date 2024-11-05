@@ -1,8 +1,13 @@
 all:
+	gcc -Wall -Wextra -g -fopenmp d2s.c -o d2s
 	gcc -Wall -Wextra -g -fopenmp -lpthread d2p.c -o d2p 
 	gcc -Wall -Wextra -g -fopenmp d2omp.c -o d2omp
+	touch results.txt
 
-
+test : 
+	make all 
+	./create_array.sh 20 
+	./d2s unsorted_array_20.txt results.txt
 
 benchmark_pthread:
 	make all
@@ -25,5 +30,6 @@ benchmark_openmp:
 	done
 clean : 
 	rm -fv a.out
-	rm -fv d2p d2omp
+	rm -fv d2p d2omp d2s
+	rm *.txt
 

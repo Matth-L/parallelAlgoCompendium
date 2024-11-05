@@ -7,8 +7,8 @@
 
 #################### Vérification  #####################
 
-if [ $# -ne 2 ]; then
-    echo "Usage: ./$0 n output_dir"
+if [ $# -ne 1 ]; then
+    echo "Usage: ./$0 size_of_array"
     exit 1
 fi
 if ! [[ $1 =~ ^[0-9]+$ ]]; then
@@ -18,20 +18,17 @@ fi
 
 ################ Suppression de l'ancien fichier ###############
 
-output_dir=$2
-mkdir -p $output_dir
-filename="${output_dir}/unsorted_array_${1}.txt"
+filename="unsorted_array_${1}.txt"
 
 if [ -f $filename ]; then
     rm $filename 
 fi
 
 ################ Création du fichier ###############
-mkdir -p "$output_dir"
 sequence=""
 
 for ((i = 1; i <= $1; i++)); do
-    sequence+=" $((RANDOM % 10000000))"
+    sequence+=" $((RANDOM % 100))"
 done
 
 echo -n "$1$sequence" > "$filename"
