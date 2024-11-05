@@ -169,6 +169,13 @@ void read_input_file(char *filename, int *array_size, int **T)
     fclose(f);
 }
 
+/**********************************************
+ * @brief Write the sorted array to the given output file
+ *
+ * @param filename
+ * @param array_size
+ * @param T, the sorted array
+ ***********************************************/
 void write_output_file(char *filename, int array_size, int *T)
 {
     FILE *f_out = fopen(filename, "w");
