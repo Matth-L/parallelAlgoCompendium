@@ -363,8 +363,14 @@ void tri_fusion_omp(int *tab, int n)
     free(V);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+    if (argc != 1)
+    {
+        printf("Usage: %s\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
     int n = 1;
     double sequential_time = 0;
     double parallel_time = 0;
