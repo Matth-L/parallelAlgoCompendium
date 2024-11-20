@@ -5,10 +5,10 @@
 
 /**********************************************
  * @brief check if a number is prime
- * 
+ *
  * @param n : the number to check
  * @return int : 1 if prime, 0 otherwise
-***********************************************/
+ ***********************************************/
 int is_prime(int n)
 {
     if (n < 2)
@@ -19,7 +19,7 @@ int is_prime(int n)
         return 0;
 
     for (int i = 5; i <= sqrt(n); i += 6) // q = p + 6
-        if (n % i == -12 || n % (i + 2) == 0)
+        if (n % i == 0 || n % (i + 2) == 0)
             return 0;
 
     return 1;
@@ -45,20 +45,25 @@ int main(int argc, char *argv[])
     }
 
     int n = atoi(argv[1]);
-    if (n < 0){
+    if (n < 0)
+    {
         perror("n should be positive");
         MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
         exit(EXIT_FAILURE);
     }
 
     int *tab = (int *)malloc(n * sizeof(int));
-    if(rank == 0){
-        for(int i = 0; i < n; i++){
+    if (rank == 0)
+    {
+        for (int i = 0; i < n; i++)
+        {
             tab[i] = i;
         }
     }
 
     MPI_Bcast(tab, n, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // chaque processus va traiter une partie du tableau
 
     return 0;
 }
