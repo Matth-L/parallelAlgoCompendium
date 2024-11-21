@@ -1,69 +1,37 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <mpi.h>
 #include <math.h>
+#include <mpi.h>
 
-/**********************************************
- * @brief check if a number is prime
- *
- * @param n : the number to check
- * @return int : 1 if prime, 0 otherwise
- ***********************************************/
-int is_prime(int n)
+void erasthothene(int *tab, int array_size)
 {
-    if (n < 2)
-        return 0;
-    if (n == 2 || n == 3)
-        return 1;
-    if (n & 1 == 0 || n % 3 == 0) // even number & 1 always gives 0
-        return 0;
-
-    for (int i = 5; i <= sqrt(n); i += 6) // q = p + 6
-        if (n % i == 0 || n % (i + 2) == 0)
-            return 0;
-
-    return 1;
-}
-
-void mark_array(int n, int *tab)
-{
-}
-
-int main(int argc, char *argv[])
-{
-    MPI_INIT(&argc, &argv);
-
-    int rank, size;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-    if (argc != 2)
+    for (int to_search = 2; to_search <= (int)sqrt(array_size); to_search++)
     {
-        perror("Usage: ./d3-1 <n>");
-        MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-        exit(EXIT_FAILURE);
-    }
-
-    int n = atoi(argv[1]);
-    if (n < 0)
-    {
-        perror("n should be positive");
-        MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-        exit(EXIT_FAILURE);
-    }
-
-    int *tab = (int *)malloc(n * sizeof(int));
-    if (rank == 0)
-    {
-        for (int i = 0; i < n; i++)
+        if (tab[to_search] == 0)
         {
-            tab[i] = i;
+            for (int i = to_search * to_search; i < array_size; i += to_search)
+            {
+                tab[i] = 1;
+            }
+        }
+    }
+}
+// 0 = prime
+// 1 = not prime
+int main(int argc, char **argv)
+{
+
+    int *tab = calloc(25, sizeof(int));
+
+    erasthothene(tab, 25);
+
+    for (int i = 2; i < 25; i++)
+    {
+        if (tab[i] == 0)
+        {
+            printf("%d\n", i);
         }
     }
 
-    MPI_Bcast(tab, n, MPI_INT, 0, MPI_COMM_WORLD);
-
-    // chaque processus va traiter une partie du tableau
-
-    return 0;
+    free(tab);
 }
