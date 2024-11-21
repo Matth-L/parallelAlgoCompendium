@@ -16,7 +16,7 @@ void eratosthene(bool *tab, int array_size)
 
     for (int i = 2; i * i < array_size; i++)
     {
-        if (tab[i] == true)
+        if (tab[i])
         {
             for (int j = i * i; j < array_size; j += i)
             {
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     if (rank == 0)
     {
 
-        int size_of_tab = 100;
+        int size_of_tab = atoi(argv[1]);
         bool *tab = malloc(size_of_tab * sizeof(bool));
 
         eratosthene(tab, size_of_tab);
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
         for (int i = 0; i < size_of_tab; i++)
         {
-            if (tab[i] == true)
+            if (tab[i])
             {
                 prime_count++;
             }
@@ -90,10 +90,9 @@ int main(int argc, char **argv)
 
         for (int i = 0, j = 0; i < size_of_tab; i++)
         {
-            if (tab[i] == true)
+            if (tab[i])
             {
-                array_of_prime[j] = i;
-                j++;
+                array_of_prime[j++] = i;
             }
         }
         for (int i = 1; i < size; i++)
@@ -103,29 +102,30 @@ int main(int argc, char **argv)
         }
     }
     ///////////////////////////////////////////////////////////////////////////
-
-    int p_count;
-    int *tab;
-
-    if (rank != 0)
+    else
     {
+
+        int p_count;
         MPI_Recv(&p_count, 1, MPI_INT, 0, 0, MPI_COMM_WORLD,
                  MPI_STATUS_IGNORE);
+        printf("p_count: %d\n", p_count);
+        int *tab = malloc(p_count * sizeof(int));
+
         MPI_Recv(&tab, p_count, MPI_INT, 0, 0, MPI_COMM_WORLD,
                  MPI_STATUS_IGNORE);
-        int chunk = p_count / size;
 
-        ///////////////////////////////////////////////////////////////////////////
-        int sexy_number_found;
+        int chunk = p_count / (size - 1);
+        int sexy_number_found = 0;
+        int total_sexy_number_found = 0;
 
-        printf("rank %d\n", rank);
-        fflush(stdout);
         for (int i = rank * chunk; i < (rank + 1) * chunk; i++)
         {
-            found(&tab[rank * chunk], chunk);
+            sexy_number_found += found(&tab[rank * chunk], chunk);
         }
+        printf("Rank %d found %d sexy number\n", rank, sexy_number_found);
     }
 
     MPI_Finalize();
+
     return 0;
 }
