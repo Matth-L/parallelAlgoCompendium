@@ -25,8 +25,9 @@ int count_sexy_number_inside(int *tab, int n)
         return 0;
     }
     int count = 0;
-    for (int i = 0; i + 6 == n; i++)
+    for (int i = 0; i < n - 6; i++)
     {
+
         if (tab[i] && tab[i + 6])
         {
             count++;
@@ -69,7 +70,8 @@ int main(int argc, char **argv)
     }
 
     int n = atoi(argv[1]);
-    int sqrt_n_minus_1 = (int)floor(sqrt(n)) - 1;
+    int sqrt_n = (int)ceil(sqrt(n));
+    int sqrt_n_minus_1 = sqrt_n - 1;
 
     // every process will have a copy of the sieved numbers
     int *sieved_numbers_from_master = malloc(sqrt_n_minus_1 * sizeof(int));
@@ -78,7 +80,6 @@ int main(int argc, char **argv)
     if (rank == 0)
     {
 
-        printf("size of the tab: %d\n", sqrt_n_minus_1);
         // init tab
         for (int i = 0; i < sqrt_n_minus_1; i++)
         {
@@ -102,13 +103,14 @@ int main(int argc, char **argv)
 
     // // split the job
     // // we need to find the remaining prime numbers from sqrt(n) to n
-    int remaining_size = n - (int)sqrt(n);
+    int remaining_size = n - sqrt_n;
     int chunk = remaining_size / size;
+    int remaining = 0;
 
-    if (rank == 0)
+    if (rank == size - 1)
     {
-        printf("remaining size: %d\n", remaining_size);
-        printf("chunk size: %d\n", chunk);
+        remaining = remaining_size % size;
+        chunk += remaining;
     }
 
     // process 0 will treat numbers from sqrt(n) to sqrt(n) + chunk
@@ -116,8 +118,8 @@ int main(int argc, char **argv)
     // process N will treat numbers from sqrt(n) + chunk*(N-1) to n
 
     int *numbers_to_sieve = malloc(chunk * sizeof(int));
-    int range_start = (int)sqrt(n) + chunk * rank + 1;
-    int range_end = (int)sqrt(n) + chunk * (rank + 1);
+    int range_start = sqrt_n + chunk * rank + 1 - remaining * rank;
+    int range_end = sqrt_n + chunk * (rank + 1) - remaining * rank;
 
     // initialize numbers_to_sieve to 1
     for (int i = 0; i < chunk; i++)
@@ -162,6 +164,7 @@ int main(int argc, char **argv)
     ///////////////////////////////////////////////////////////////////////////
 
     int local_inside_count = count_sexy_number_inside(numbers_to_sieve, chunk);
+    printf("local : %d\n", local_inside_count);
     int global_inside_count = 0;
     MPI_Reduce(&local_inside_count, &global_inside_count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
@@ -203,7 +206,7 @@ int main(int argc, char **argv)
         int local_between_count_first_chunk = count_sexy_number_between(last_6_first_chunk, numbers_to_sieve, 6);
         total += local_between_count_first_chunk;
 
-        printf("Number of sexy numbers between chunks: %d\n", global_between_count);
+        printf("total sexy number: %d\n", total);
     }
 
     MPI_Finalize();
