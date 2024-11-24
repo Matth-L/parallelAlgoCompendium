@@ -31,6 +31,7 @@ int count_sexy_number_inside(int *tab, int n)
         if (tab[i] && tab[i + 6])
         {
             count++;
+            printf("sexy number inside: (%d, %d)\n", i, i);
         }
     }
     return count;
@@ -48,6 +49,7 @@ int count_sexy_number_between(int *tab1, int *tab2, int n)
         if (tab1[i] && tab2[i])
         {
             count++;
+            printf("sexy number between: (%d, %d)\n", i, i);
         }
     }
     return count;
@@ -167,6 +169,8 @@ int main(int argc, char **argv)
     printf("local : %d\n", local_inside_count);
     int global_inside_count = 0;
     MPI_Reduce(&local_inside_count, &global_inside_count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    printf("global_inside_count %d\n", global_inside_count);
 
     // now we need to know if there's a sexy number between each chunk
     int *last_6 = malloc(6 * sizeof(int));
