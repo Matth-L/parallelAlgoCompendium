@@ -44,7 +44,8 @@ int count_sexy_number_between(int *tab1, int *tab2, int n, int rank)
         if (tab1[i] && tab2[i])
         {
             count++;
-            printf("rank : %d;  sexy number between: (%d, %d)\n", rank, i, i + 6);
+            printf("rank : %d;  sexy number between: (%d, %d)\n", rank, i,
+                   i + 6);
         }
     }
     return count;
@@ -96,28 +97,12 @@ int main(int argc, char **argv)
     int chunk = remaining_size / nb_process;
     int remaining = 0;
 
-    // if (rank == 0)
-    // {
-    //     resize_size(&nb_process, &chunk, &remaining_size, &remaining);
-    //     printf("nb_process : %d\n", nb_process);
-    // }
-
-    // MPI_Bcast(&chunk, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    // MPI_Bcast(&remaining, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    // MPI_Bcast(&nb_process, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-    // if (rank >= nb_process)
-    // {
-    //     rank = -1;
-    // }
-
     // every process will have a copy of the sieved numbers
     int *first_sqrt = malloc(sqrt_n_minus_1 * sizeof(int));
 
     // master init the tab and find first sqrt(n) prime numbers
     if (rank == 0)
     {
-
         // init tab
         for (int i = 0; i < sqrt_n_minus_1; i++)
         {
@@ -139,29 +124,28 @@ int main(int argc, char **argv)
     // broadcast the sieved numbers to all processes
     MPI_Bcast(first_sqrt, sqrt_n_minus_1, MPI_INT, 0, MPI_COMM_WORLD);
 
+    // the last one will be bigger, with the remainder
+    // TODO should change when threads number is too big
     if (rank == nb_process - 1)
     {
         int remaining = remaining_size % nb_process;
         chunk += remaining;
     }
 
-    printf("rank %d, chunk %d\n", rank, chunk);
-
-    // process 0 will treat numbers from sqrt(n) to sqrt(n) + chunk
-    // process 1 will treat numbers from sqrt(n) + chunk*rank to sqrt(n) + chunk*(rank+1)
-    // process N will treat numbers from sqrt(n) + chunk*(N-1) to n
-
+    // finding the range
     int *numbers_to_sieve = malloc(chunk * sizeof(int));
     int range_start = sqrt_n + chunk * rank + 1 - remaining * rank;
     int range_end = sqrt_n + chunk * (rank + 1) - remaining * rank;
 
-    // initialize numbers_to_sieve to 1
+    // init
     for (int i = 0; i < chunk; i++)
     {
         numbers_to_sieve[i] = 1;
     }
 
     int step = 0;
+
+    // cross out the numbers
     // [sqrt(n), chunk]
     for (int i = 0; i <= sqrt_n_minus_1; i++)
     {
@@ -197,9 +181,11 @@ int main(int argc, char **argv)
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
 
+    // finding sexy_numbers inside each chunk
     int local_inside_count = count_sexy_number_inside(numbers_to_sieve, chunk);
     int global_inside_count = 0;
-    MPI_Reduce(&local_inside_count, &global_inside_count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&local_inside_count, &global_inside_count, 1, MPI_INT, MPI_SUM,
+               0, MPI_COMM_WORLD);
 
     if (rank == 0)
     {
@@ -207,6 +193,9 @@ int main(int argc, char **argv)
     }
 
     // now we need to know if there's a sexy number between each chunk
+
+    // we use the last 6 of the previous rank to check if there's a sexy number
+    // 0 will only send, the last will only recv
     int *last_6 = malloc(6 * sizeof(int));
     int *received_last_6 = malloc(6 * sizeof(int));
 
@@ -221,33 +210,49 @@ int main(int argc, char **argv)
     }
 
     int local_between_count = 0;
+    int global_between_count = 0;
+    int first_prime_number_count = 0;
 
     if (rank != 0)
     {
-        MPI_Recv(received_last_6, 6, MPI_INT, rank - 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        local_between_count = count_sexy_number_between(numbers_to_sieve, received_last_6, 6, rank);
+        MPI_Recv(received_last_6,
+                 6,
+                 MPI_INT,
+                 rank - 1,
+                 0,
+                 MPI_COMM_WORLD,
+                 MPI_STATUS_IGNORE);
+
+        local_between_count = count_sexy_number_between(numbers_to_sieve,
+                                                        received_last_6,
+                                                        6,
+                                                        rank);
     }
-
-    int global_between_count = 0;
-
-    MPI_Reduce(&local_between_count, &global_between_count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-
-    // now we need to check with the prime_sieve
-
-    if (rank == 0)
+    else // 0 counts the first prime number while the other counts between
     {
         int min_size = MIN(sqrt_n_minus_1, chunk);
         int last_num_first_prime[min_size];
-        int last_count = 0;
 
         for (int i = 0; i < min_size; i++)
         {
             if (first_sqrt[i] && numbers_to_sieve[i + 6 - min_size])
             {
-                last_count++;
+                local_between_count++;
             }
         }
-        int total = global_between_count + global_inside_count + last_count;
+    }
+
+    MPI_Reduce(&local_between_count,
+               &global_between_count,
+               1,
+               MPI_INT,
+               MPI_SUM,
+               0, MPI_COMM_WORLD);
+
+    // now we need to check with the first sqrt numbers
+    if (rank == 0)
+    {
+        int total = global_between_count + global_inside_count;
         printf("total : %d\n", total);
     }
 
