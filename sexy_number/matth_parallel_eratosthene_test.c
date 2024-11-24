@@ -25,7 +25,7 @@ int count_sexy_number_inside(int *tab, int n)
         return 0;
     }
     int count = 0;
-    for (int i = 0; i+6 ==n; i++)
+    for (int i = 0; i + 6 == n; i++)
     {
         if (tab[i] && tab[i + 6])
         {
@@ -166,26 +166,25 @@ int main(int argc, char **argv)
     MPI_Reduce(&local_inside_count, &global_inside_count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
     // now we need to know if there's a sexy number between each chunk
+    int *last_6 = malloc(6 * sizeof(int));
+    int *received_last_6 = malloc(6 * sizeof(int));
 
-    int *last_5 = malloc(5 * sizeof(int));
-    int *received_last_5 = malloc(5 * sizeof(int));
-
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 6; i++)
     {
-        last_5[i] = numbers_to_sieve[chunk - 5 + i];
+        last_6[i] = numbers_to_sieve[chunk - 6 + i];
     }
 
     if (rank != 0)
     {
-        MPI_Send(last_5, 5, MPI_INT, rank - 1, 0, MPI_COMM_WORLD);
+        MPI_Send(last_6, 6, MPI_INT, rank - 1, 0, MPI_COMM_WORLD);
     }
 
     if (rank != size - 1)
     {
-        MPI_Recv(received_last_5, 5, MPI_INT, rank + 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(received_last_6, 6, MPI_INT, rank + 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
 
-    int local_between_count = count_sexy_number_between(last_5, received_last_5, 5);
+    int local_between_count = count_sexy_number_between(last_6, received_last_6, 6);
     int global_between_count = 0;
 
     MPI_Reduce(&local_between_count, &global_between_count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -195,13 +194,13 @@ int main(int argc, char **argv)
 
     if (rank == 0)
     {
-        int last_5_first_chunk[5];
-        int begin = sqrt_n_minus_1 - 5;
-        for (int i = begin; i <= sqrt_n_minus_1; i++)
+        int last_6_first_chunk[6];
+        int begin = sqrt_n_minus_1 - 6;
+        for (int i = begin; i < sqrt_n_minus_1; i++)
         {
-            last_5_first_chunk[i] = sieved_numbers_from_master[begin + i];
+            last_6_first_chunk[i - begin] = sieved_numbers_from_master[i];
         }
-        int local_between_count_first_chunk = count_sexy_number_between(last_5_first_chunk, numbers_to_sieve, 5);
+        int local_between_count_first_chunk = count_sexy_number_between(last_6_first_chunk, numbers_to_sieve, 6);
         total += local_between_count_first_chunk;
 
         printf("Number of sexy numbers between chunks: %d\n", global_between_count);
