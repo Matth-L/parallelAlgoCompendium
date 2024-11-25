@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <mpi.h>
+#include <omp.h> // for omp_get_wtime
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
@@ -106,6 +107,7 @@ void resizer(int *nb_process, int *size_of_chunk, int remaining_size,
 
 int main(int argc, char **argv)
 {
+    double start_sieve = omp_get_wtime();
 
     // MPI init
     MPI_Init(&argc, &argv);
@@ -211,6 +213,8 @@ int main(int argc, char **argv)
         }
     }
 
+    double end_sieve = omp_get_wtime();
+
     // from this point, they all have an array of size chunk with
     // 1 if the number is prime, 0 otherwise
     // example : n = 64 , size = 4, chunk = 14
@@ -229,6 +233,8 @@ int main(int argc, char **argv)
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
+
+    double start_counting_couple = omp_get_wtime();
 
     // finding sexy_numbers inside each chunk
     int local_inside_count = count_sexy_number_inside(numbers_to_sieve, chunk);
@@ -297,6 +303,14 @@ int main(int argc, char **argv)
     {
         int total = global_between_count + global_inside_count;
         printf("total : %d\n", total);
+    }
+
+    double end_counting_couple = omp_get_wtime();
+
+    if (rank == 0)
+    {
+        printf("Time to sieve: %f\n", end_sieve - start_sieve);
+        printf("Time to count: %f\n", end_counting_couple - start_counting_couple);
     }
 
     MPI_Finalize();
