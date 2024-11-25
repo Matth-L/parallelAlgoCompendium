@@ -7,6 +7,12 @@
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
+/**********************************************
+ * @brief Find the first sqrt(n) prime numbers
+ *
+ * @param tab
+ * @param n
+ ***********************************************/
 void find_first_sqrt_prime(int *tab, int n)
 {
     for (int i = 2; i <= n; i++)
@@ -21,6 +27,14 @@ void find_first_sqrt_prime(int *tab, int n)
     }
 }
 
+/**********************************************
+ * @brief Count the number of sexy numbers inside a tab
+ * No communication needed
+ *
+ * @param tab the tab to check
+ * @param n the size of the tab
+ * @return int the number of sexy numbers
+ ***********************************************/
 int count_sexy_number_inside(int *tab, int n)
 {
     int count = 0;
@@ -35,6 +49,16 @@ int count_sexy_number_inside(int *tab, int n)
     return count;
 }
 
+/**********************************************
+ * @brief Count the number of sexy numbers between two tabs
+ * The tab to process is already given
+ *
+ * @param tab1
+ * @param tab2
+ * @param n
+ * @param rank
+ * @return int
+ ***********************************************/
 int count_sexy_number_between(int *tab1, int *tab2, int n, int rank)
 {
 
@@ -51,8 +75,17 @@ int count_sexy_number_between(int *tab1, int *tab2, int n, int rank)
     return count;
 }
 
-void resize_size(int *nb_process, int *size_of_chunk, int remaining_size,
-                 int *remainder)
+/**
+ * @brief If there are too many threads for the size of the tab, we will reduce
+ * the number of threads and adjust the size of the chunk.
+ *
+ * @param nb_process
+ * @param size_of_chunk
+ * @param remaining_size
+ * @param remainder
+ */
+void resizer(int *nb_process, int *size_of_chunk, int remaining_size,
+             int *remainder)
 {
     int new_nb_process = *nb_process;
     int new_chunk = remaining_size / new_nb_process;
@@ -102,7 +135,7 @@ int main(int argc, char **argv)
     // we will kill the excess of threads
     if (rank == 0)
     {
-        resize_size(&nb_process, &chunk, remaining_size, &remaining);
+        resizer(&nb_process, &chunk, remaining_size, &remaining);
     }
     // COMMUNICATOR FOR PROCESS TO KILL
     MPI_Comm to_kill;
@@ -212,17 +245,11 @@ int main(int argc, char **argv)
 
     // we use the last 6 of the previous rank to check if there's a sexy number
     // 0 will only send, the last will only recv
-    int *last_6 = malloc(6 * sizeof(int));
     int *received_last_6 = malloc(6 * sizeof(int));
-
-    for (int i = 0; i < 6; i++)
-    {
-        last_6[i] = numbers_to_sieve[chunk - 6 + i];
-    }
 
     if (rank != nb_process - 1)
     {
-        MPI_Send(last_6, 6, MPI_INT, rank + 1, 0, MPI_COMM_WORLD);
+        MPI_Send(&numbers_to_sieve[chunk - 6], 6, MPI_INT, rank + 1, 0, MPI_COMM_WORLD);
     }
 
     int local_between_count = 0;
