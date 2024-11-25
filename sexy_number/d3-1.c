@@ -69,8 +69,6 @@ int count_sexy_number_between(int *tab1, int *tab2, int n, int rank)
         if (tab1[i] && tab2[i])
         {
             count++;
-            printf("rank : %d;  sexy number between: (%d, %d)\n", rank, i,
-                   i + 6);
         }
     }
     return count;
@@ -95,7 +93,6 @@ void resizer(int *nb_process, int *size_of_chunk, int remaining_size,
     if (new_chunk < 6)
     {
         new_chunk = (remaining_size / 6);
-        printf("Reduced the number of threads used.\n");
     }
 
     new_nb_process = (remaining_size / new_chunk);
@@ -172,12 +169,6 @@ int main(int argc, char **argv)
         // 0 and 1 are not in this, so we start at 2 and go to sqrt(n)
         // so first_sqrt[0] is 2 etc.
         find_first_sqrt_prime(first_sqrt, sqrt_n_minus_1);
-
-        printf("First %d prime numbers:\n", sqrt_n_minus_1);
-        for (int i = 0; i < sqrt_n_minus_1; i++)
-        {
-            printf("%d: %d\n", i + 2, first_sqrt[i]);
-        }
     }
 
     // broadcast the sieved numbers to all processes
@@ -241,11 +232,6 @@ int main(int argc, char **argv)
     int global_inside_count = 0;
     MPI_Reduce(&local_inside_count, &global_inside_count, 1, MPI_INT, MPI_SUM,
                0, MPI_COMM_WORLD);
-
-    if (rank == 0)
-    {
-        printf("total inside: %d\n", global_inside_count);
-    }
 
     // now we need to know if there's a sexy number between each chunk
 
