@@ -136,6 +136,7 @@ int main(int argc, char **argv)
     {
         resizer(&nb_process, &chunk, remaining_size, &remaining);
     }
+
     // COMMUNICATOR FOR PROCESS TO KILL
     MPI_Comm to_kill;
     if (rank >= nb_process)
@@ -152,6 +153,8 @@ int main(int argc, char **argv)
         int remaining = remaining_size % nb_process;
         chunk += remaining;
     }
+
+    printf("rank %d, nb_process %d, chunk %d, remaining %d\n", rank, nb_process, chunk, remaining);
 
     // every process will have a copy of the sieved numbers
     int *first_sqrt = malloc(sqrt_n_minus_1 * sizeof(int));
@@ -237,6 +240,7 @@ int main(int argc, char **argv)
 
     // we use the last 6 of the previous rank to check if there's a sexy number
     // 0 will only send, the last will only recv
+
     int *received_last_6 = malloc(6 * sizeof(int));
 
     if (rank != nb_process - 1)
@@ -299,6 +303,9 @@ int main(int argc, char **argv)
         printf("Time to count: %f\n", end_counting_couple - start_counting_couple);
     }
 
+    free(first_sqrt);
+    free(numbers_to_sieve);
+    free(received_last_6);
     MPI_Finalize();
     return 0;
 }
