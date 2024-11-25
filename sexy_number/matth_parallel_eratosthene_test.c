@@ -51,23 +51,23 @@ int count_sexy_number_between(int *tab1, int *tab2, int n, int rank)
     return count;
 }
 
-void resize_size(int *nb_process, int *size_of_chunk, int *remaining_size,
+void resize_size(int *nb_process, int *size_of_chunk, int remaining_size,
                  int *remainder)
 {
-    int new_th_num = *nb_process;
-    int new_chunk = *remaining_size / new_th_num;
+    int new_nb_process = *nb_process;
+    int new_chunk = remaining_size / new_nb_process;
 
     // if the number of threads is too big or
     if (new_chunk < 6)
     {
-        new_chunk = (*remaining_size / 6);
-        printf("Reduced the number of threads used\n");
+        new_chunk = (remaining_size / 6);
+        printf("Reduced the number of threads used.\n");
     }
 
-    new_th_num = (*remaining_size / new_chunk);
+    new_nb_process = (remaining_size / new_chunk);
 
-    *remainder = *remaining_size % new_th_num;
-    *nb_process = new_th_num;
+    *remainder = remaining_size % new_nb_process;
+    *nb_process = new_nb_process;
     *size_of_chunk = new_chunk;
 }
 
@@ -91,11 +91,35 @@ int main(int argc, char **argv)
     int sqrt_n = (int)ceil(sqrt(n));
     int sqrt_n_minus_1 = sqrt_n - 1;
 
-    // // split the job
-    // // we need to find the remaining prime numbers from sqrt(n) to n s
+    // split the job
+    // we need to find the remaining prime numbers from sqrt(n) to n s
     int remaining_size = n - sqrt_n;
     int chunk = remaining_size / nb_process;
     int remaining = 0;
+
+    // COMMUNICATOR FOR PROCESS
+    // there might be too much threads for the size of the tab
+    // we will kill the excess of threads
+    if (rank == 0)
+    {
+        resize_size(&nb_process, &chunk, remaining_size, &remaining);
+    }
+    // COMMUNICATOR FOR PROCESS TO KILL
+    MPI_Comm to_kill;
+    if (rank >= nb_process)
+    {
+        MPI_Comm_split(MPI_COMM_WORLD, 1, rank, &to_kill);
+        MPI_Abort(to_kill, 0);
+        return 0;
+    }
+
+    // the last one will be bigger, with the remainder
+    // TODO should change when threads number is too big
+    if (rank == nb_process - 1)
+    {
+        int remaining = remaining_size % nb_process;
+        chunk += remaining;
+    }
 
     // every process will have a copy of the sieved numbers
     int *first_sqrt = malloc(sqrt_n_minus_1 * sizeof(int));
@@ -123,14 +147,6 @@ int main(int argc, char **argv)
 
     // broadcast the sieved numbers to all processes
     MPI_Bcast(first_sqrt, sqrt_n_minus_1, MPI_INT, 0, MPI_COMM_WORLD);
-
-    // the last one will be bigger, with the remainder
-    // TODO should change when threads number is too big
-    if (rank == nb_process - 1)
-    {
-        int remaining = remaining_size % nb_process;
-        chunk += remaining;
-    }
 
     // finding the range
     int *numbers_to_sieve = malloc(chunk * sizeof(int));
