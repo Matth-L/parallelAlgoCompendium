@@ -45,7 +45,7 @@ int count_sexy_number_inside(int *tab, int n, int rank)
         if (tab[i] && tab[i + 6])
         {
             count++;
-            printf("rank %d, sexy number inside %d and %d\n", rank, i, i + 6);
+            // printf("rank %d, sexy number inside %d and %d\n", rank, i, i + 6);
         }
     }
     return count;
@@ -70,7 +70,7 @@ int count_sexy_number_between(int *tab1, int *tab2, int n, int rank)
         if (tab1[i] && tab2[i])
         {
             count++;
-            printf("rank %d, sexy number between %d and %d\n", rank, i, i + 6);
+            // printf("rank %d, sexy number between %d and %d\n", rank, i, i + 6);
         }
     }
     return count;
@@ -194,7 +194,8 @@ int main(int argc, char **argv)
     int *numbers_to_sieve = malloc(chunk * sizeof(int));
     int range_start = sqrt_n + chunk * rank + 1 - remaining * rank;
     int range_end = sqrt_n + chunk * (rank + 1) - remaining * rank;
-
+    printf("range_start %d, range_end %d\n", range_start, range_end);
+    printf("sqrt_n %d, sqrt_n_minus_1 %d\n", sqrt_n, sqrt_n_minus_1);
     // init
     for (int i = 0; i < chunk; i++)
     {
@@ -205,7 +206,7 @@ int main(int argc, char **argv)
 
     // cross out the numbers
     // [sqrt(n), chunk]
-    for (int i = 0; i <= sqrt_n_minus_1; i++)
+    for (int i = 0; i < sqrt_n_minus_1; i++)
     {
         if (first_sqrt[i])
         {
@@ -245,6 +246,13 @@ int main(int argc, char **argv)
 
     // finding sexy_numbers inside each chunk
     int local_inside_count = count_sexy_number_inside(numbers_to_sieve, chunk, rank);
+    // print the first 10 number of numbers_to_sieve
+
+    for (int i = 0; i < 10; i++)
+    {
+        printf("rank %d, number %d, value %d\n", rank, i, numbers_to_sieve[i]);
+    }
+
     int global_inside_count = 0;
     MPI_Reduce(&local_inside_count, &global_inside_count, 1, MPI_INT, MPI_SUM,
                0, MPI_COMM_WORLD);
