@@ -138,10 +138,12 @@ int main(int argc, char **argv)
     {
         resizer(&nb_process, &chunk, remaining_size, &remaining);
     }
-
-    MPI_Bcast(&nb_process, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&chunk, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&remaining, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    
+    int broadcast_data[3] = {nb_process, chunk, remaining};
+    MPI_Bcast(broadcast_data, 3, MPI_INT, 0, MPI_COMM_WORLD);
+    nb_process = broadcast_data[0];
+    chunk = broadcast_data[1];
+    remaining = broadcast_data[2];
 
     // COMMUNICATOR FOR PROCESS TO KILL
     int color = (rank < nb_process) ? 0 : MPI_UNDEFINED;

@@ -141,9 +141,11 @@ int main(int argc, char **argv)
         resizer(&nb_process, &chunk, remaining_size, &remaining);
     }
 
-    MPI_Bcast(&nb_process, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&chunk, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&remaining, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    int broadcast_data[3] = {nb_process, chunk, remaining};
+    MPI_Bcast(broadcast_data, 3, MPI_INT, 0, MPI_COMM_WORLD);
+    nb_process = broadcast_data[0];
+    chunk = broadcast_data[1];
+    remaining = broadcast_data[2];
 
     // COMMUNICATOR FOR PROCESS TO KILL
     int color = (rank < nb_process) ? 0 : MPI_UNDEFINED;
@@ -285,13 +287,14 @@ int main(int argc, char **argv)
 
     MPI_Win win;
     MPI_Win_create(numbers_to_sieve, chunk * sizeof(int), sizeof(int), MPI_INFO_NULL, alive, &win);
+    MPI_Win_fence(0, win);
 
     if (rank != nb_process - 1)
     {
-        MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank + 1, 0, win);
         MPI_Put(&numbers_to_sieve[chunk - 6], 6, MPI_INT, rank + 1, 0, 6, MPI_INT, win);
-        MPI_Win_unlock(rank + 1, win);
     }
+
+    MPI_Win_fence(0, win);
 
     int local_between_count = 0;
     int global_between_count = 0;
@@ -299,9 +302,21 @@ int main(int argc, char **argv)
 
     if (rank != 0)
     {
-        MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank - 1, 0, win);
-        MPI_Get(received_last_6, 6, MPI_INT, rank - 1, chunk - 6, 6, MPI_INT, win);
-        MPI_Win_unlock(rank - 1, win);
+        //    MPI_Recv(received_last_6,
+        //      6,
+        //      MPI_INT,
+        //      rank - 1,
+        //      0,
+        //      alive,
+        //      MPI_STATUS_IGNORE);
+        MPI_Get(received_last_6,
+                6,
+                MPI_INT,
+                rank - 1,
+                0,
+                6,
+                MPI_INT,
+                win);
 
         local_between_count = count_sexy_number_between(numbers_to_sieve,
                                                         received_last_6,
