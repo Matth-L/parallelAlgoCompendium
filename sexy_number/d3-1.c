@@ -36,7 +36,7 @@ void find_first_sqrt_prime(int *tab, int n)
  * @param n the size of the tab
  * @return int the number of sexy numbers
  ***********************************************/
-int count_sexy_number_inside(int *tab, int n)
+int count_sexy_number_inside(int *tab, int n, int rank)
 {
     int count = 0;
     for (int i = 0; i < n - 6; i++)
@@ -45,6 +45,7 @@ int count_sexy_number_inside(int *tab, int n)
         if (tab[i] && tab[i + 6])
         {
             count++;
+            printf("rank %d, sexy number inside %d and %d\n", rank, i, i + 6);
         }
     }
     return count;
@@ -69,6 +70,7 @@ int count_sexy_number_between(int *tab1, int *tab2, int n, int rank)
         if (tab1[i] && tab2[i])
         {
             count++;
+            printf("rank %d, sexy number between %d and %d\n", rank, i, i + 6);
         }
     }
     return count;
@@ -100,6 +102,8 @@ void resizer(int *nb_process, int *size_of_chunk, int remaining_size,
     *remainder = remaining_size % new_nb_process;
     *nb_process = new_nb_process;
     *size_of_chunk = new_chunk;
+    printf("new nb_process %d, new chunk %d, new remainder %d\n",
+           *nb_process, *size_of_chunk, *remainder);
 }
 
 int main(int argc, char **argv)
@@ -137,6 +141,10 @@ int main(int argc, char **argv)
         resizer(&nb_process, &chunk, remaining_size, &remaining);
     }
 
+    MPI_Bcast(&nb_process, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&chunk, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&remaining, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
     // COMMUNICATOR FOR PROCESS TO KILL
     MPI_Comm to_kill;
     if (rank >= nb_process)
@@ -150,11 +158,9 @@ int main(int argc, char **argv)
     // TODO should change when threads number is too big
     if (rank == nb_process - 1)
     {
-        int remaining = remaining_size % nb_process;
+        remaining = remaining_size % nb_process;
         chunk += remaining;
     }
-
-    printf("rank %d, nb_process %d, chunk %d, remaining %d\n", rank, nb_process, chunk, remaining);
 
     // every process will have a copy of the sieved numbers
     int *first_sqrt = malloc(sqrt_n_minus_1 * sizeof(int));
@@ -177,6 +183,13 @@ int main(int argc, char **argv)
     // broadcast the sieved numbers to all processes
     MPI_Bcast(first_sqrt, sqrt_n_minus_1, MPI_INT, 0, MPI_COMM_WORLD);
 
+    if (rank != nb_process - 1)
+    {
+        remaining = 0;
+    }
+
+    // printf("rank %d, nb_process %d, chunk %d, remaining %d\n", rank, nb_process,
+    //        chunk, remaining);
     // finding the range
     int *numbers_to_sieve = malloc(chunk * sizeof(int));
     int range_start = sqrt_n + chunk * rank + 1 - remaining * rank;
@@ -231,7 +244,7 @@ int main(int argc, char **argv)
     double start_counting_couple = omp_get_wtime();
 
     // finding sexy_numbers inside each chunk
-    int local_inside_count = count_sexy_number_inside(numbers_to_sieve, chunk);
+    int local_inside_count = count_sexy_number_inside(numbers_to_sieve, chunk, rank);
     int global_inside_count = 0;
     MPI_Reduce(&local_inside_count, &global_inside_count, 1, MPI_INT, MPI_SUM,
                0, MPI_COMM_WORLD);
@@ -269,15 +282,11 @@ int main(int argc, char **argv)
     }
     else // 0 counts the first prime number while the other counts between
     {
-        int min_size = MIN(sqrt_n_minus_1, chunk);
-        int last_num_first_prime[min_size];
-
-        for (int i = 0; i < min_size; i++)
+        if (sqrt_n > 6)
         {
-            if (first_sqrt[i] && numbers_to_sieve[i + 6 - min_size])
-            {
-                local_between_count++;
-            }
+            local_between_count += count_sexy_number_inside(first_sqrt, sqrt_n_minus_1, rank);
+            int min_size = MIN(sqrt_n_minus_1, 6);
+            local_between_count += count_sexy_number_between(&first_sqrt[sqrt_n_minus_1 - 6], numbers_to_sieve, min_size, rank);
         }
     }
 
