@@ -100,8 +100,6 @@ void resizer(int *nb_process, int *size_of_chunk, int remaining_size,
     *remainder = remaining_size % new_nb_process;
     *nb_process = new_nb_process;
     *size_of_chunk = new_chunk;
-    printf("new nb_process %d, new chunk %d, new remainder %d\n",
-           *nb_process, *size_of_chunk, *remainder);
 }
 
 int main(int argc, char **argv)
@@ -138,7 +136,7 @@ int main(int argc, char **argv)
     {
         resizer(&nb_process, &chunk, remaining_size, &remaining);
     }
-    
+
     int broadcast_data[3] = {nb_process, chunk, remaining};
     MPI_Bcast(broadcast_data, 3, MPI_INT, 0, MPI_COMM_WORLD);
     nb_process = broadcast_data[0];
@@ -152,16 +150,11 @@ int main(int argc, char **argv)
 
     if (color == MPI_UNDEFINED)
     {
-        printf("Rank %d is too much, exiting early.\n", rank);
         MPI_Finalize();
         exit(EXIT_SUCCESS);
     }
 
-    printf("Rank %d is good\n", rank);
-    fflush(stdout);
-
     // the last one will be bigger, with the remainder
-    // TODO should change when threads number is too big
     if (rank == nb_process - 1)
     {
         remaining = remaining_size % nb_process;
@@ -335,16 +328,15 @@ int main(int argc, char **argv)
     if (rank == 0)
     {
         int total = global_between_count + global_inside_count;
-        printf("total : %d\n", total);
-    }
+        double end_counting_couple = omp_get_wtime();
+        printf("Sexy number count : %d\n", total);
 
-    double end_counting_couple = omp_get_wtime();
+        printf("Number of process used : %d\n", nb_process);
 
-    if (rank == 0)
-    {
-        printf("Time to sieve: %f\n", end_sieve - start_sieve);
-        printf("Time to count: %f\n", end_counting_couple -
-                                          start_counting_couple);
+        printf("Time to sieve: %f\n",
+               end_sieve - start_sieve);
+        printf("Time to count: %f\n",
+               end_counting_couple - start_counting_couple);
     }
 
     free(first_sqrt);

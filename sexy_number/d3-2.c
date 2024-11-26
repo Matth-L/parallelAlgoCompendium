@@ -45,7 +45,6 @@ int count_sexy_number_inside(int *tab, int n, int rank)
         if (tab[i] && tab[i + 6])
         {
             count++;
-            // printf("rank %d, sexy number inside %d and %d\n", rank, i, i + 6);
         }
     }
     return count;
@@ -70,7 +69,6 @@ int count_sexy_number_between(int *tab1, int *tab2, int n, int rank)
         if (tab1[i] && tab2[i])
         {
             count++;
-            // printf("rank %d, sexy number between %d and %d\n", rank, i, i + 6);
         }
     }
     return count;
@@ -102,8 +100,6 @@ void resizer(int *nb_process, int *size_of_chunk, int remaining_size,
     *remainder = remaining_size % new_nb_process;
     *nb_process = new_nb_process;
     *size_of_chunk = new_chunk;
-    printf("new nb_process %d, new chunk %d, new remainder %d\n",
-           *nb_process, *size_of_chunk, *remainder);
 }
 
 int main(int argc, char **argv)
@@ -154,13 +150,11 @@ int main(int argc, char **argv)
 
     if (color == MPI_UNDEFINED)
     {
-        printf("Rank %d is too much, exiting early.\n", rank);
         MPI_Finalize();
         exit(EXIT_SUCCESS);
     }
 
     // the last one will be bigger, with the remainder
-    // TODO should change when threads number is too big
     if (rank == nb_process - 1)
     {
         remaining = remaining_size % nb_process;
@@ -198,8 +192,6 @@ int main(int argc, char **argv)
         remaining = 0;
     }
 
-    // printf("rank %d, nb_process %d, chunk %d, remaining %d\n", rank, nb_process,
-    //        chunk, remaining);
     // finding the range
     int *numbers_to_sieve = malloc(chunk * sizeof(int));
     if (numbers_to_sieve == NULL)
@@ -210,8 +202,7 @@ int main(int argc, char **argv)
 
     int range_start = sqrt_n + chunk * rank + 1 - remaining * rank;
     int range_end = sqrt_n + chunk * (rank + 1) - remaining * rank;
-    printf("range_start %d, range_end %d\n", range_start, range_end);
-    printf("sqrt_n %d, sqrt_n_minus_1 %d\n", sqrt_n, sqrt_n_minus_1);
+
     // init
     for (int i = 0; i < chunk; i++)
     {
@@ -261,13 +252,8 @@ int main(int argc, char **argv)
     double start_counting_couple = omp_get_wtime();
 
     // finding sexy_numbers inside each chunk
-    int local_inside_count = count_sexy_number_inside(numbers_to_sieve, chunk, rank);
-    // print the first 10 number of numbers_to_sieve
-
-    // for (int i = 0; i < 10; i++)
-    // {
-    //     printf("rank %d, number %d, value %d\n", rank, i, numbers_to_sieve[i]);
-    // }
+    int local_inside_count =
+        count_sexy_number_inside(numbers_to_sieve, chunk, rank);
 
     int global_inside_count = 0;
     MPI_Reduce(&local_inside_count, &global_inside_count, 1, MPI_INT, MPI_SUM,
@@ -286,12 +272,24 @@ int main(int argc, char **argv)
     }
 
     MPI_Win win;
-    MPI_Win_create(numbers_to_sieve, chunk * sizeof(int), sizeof(int), MPI_INFO_NULL, alive, &win);
+    MPI_Win_create(numbers_to_sieve,
+                   chunk * sizeof(int),
+                   sizeof(int),
+                   MPI_INFO_NULL,
+                   alive,
+                   &win);
     MPI_Win_fence(0, win);
 
     if (rank != nb_process - 1)
     {
-        MPI_Put(&numbers_to_sieve[chunk - 6], 6, MPI_INT, rank + 1, 0, 6, MPI_INT, win);
+        MPI_Put(&numbers_to_sieve[chunk - 6],
+                6,
+                MPI_INT,
+                rank + 1,
+                0,
+                6,
+                MPI_INT,
+                win);
     }
 
     MPI_Win_fence(0, win);
@@ -327,9 +325,16 @@ int main(int argc, char **argv)
     {
         if (sqrt_n > 6)
         {
-            local_between_count += count_sexy_number_inside(first_sqrt, sqrt_n_minus_1, rank);
+            local_between_count +=
+                count_sexy_number_inside(first_sqrt,
+                                         sqrt_n_minus_1,
+                                         rank);
             int min_size = MIN(sqrt_n_minus_1, 6);
-            local_between_count += count_sexy_number_between(&first_sqrt[sqrt_n_minus_1 - 6], numbers_to_sieve, min_size, rank);
+            local_between_count +=
+                count_sexy_number_between(&first_sqrt[sqrt_n_minus_1 - 6],
+                                          numbers_to_sieve,
+                                          min_size,
+                                          rank);
         }
     }
 
@@ -344,15 +349,15 @@ int main(int argc, char **argv)
     if (rank == 0)
     {
         int total = global_between_count + global_inside_count;
-        printf("total : %d\n", total);
-    }
+        double end_counting_couple = omp_get_wtime();
+        printf("Sexy number count : %d\n", total);
 
-    double end_counting_couple = omp_get_wtime();
+        printf("Number of process used : %d\n", nb_process);
 
-    if (rank == 0)
-    {
-        printf("Time to sieve: %f\n", end_sieve - start_sieve);
-        printf("Time to count: %f\n", end_counting_couple - start_counting_couple);
+        printf("Time to sieve: %f\n",
+               end_sieve - start_sieve);
+        printf("Time to count: %f\n",
+               end_counting_couple - start_counting_couple);
     }
 
     MPI_Win_free(&win);
