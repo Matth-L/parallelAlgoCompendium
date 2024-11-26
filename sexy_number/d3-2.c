@@ -146,12 +146,15 @@ int main(int argc, char **argv)
     MPI_Bcast(&remaining, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // COMMUNICATOR FOR PROCESS TO KILL
-    MPI_Comm to_kill;
-    if (rank >= nb_process)
+    int color = (rank < nb_process) ? 0 : MPI_UNDEFINED;
+    MPI_Comm alive;
+    MPI_Comm_split(MPI_COMM_WORLD, color, rank, &alive);
+
+    if (color == MPI_UNDEFINED)
     {
-        MPI_Comm_split(MPI_COMM_WORLD, 1, rank, &to_kill);
-        MPI_Abort(to_kill, 0);
-        return 0;
+        printf("Rank %d is too much, exiting early.\n", rank);
+        MPI_Finalize();
+        exit(EXIT_SUCCESS);
     }
 
     // the last one will be bigger, with the remainder
@@ -164,6 +167,11 @@ int main(int argc, char **argv)
 
     // every process will have a copy of the sieved numbers
     int *first_sqrt = malloc(sqrt_n_minus_1 * sizeof(int));
+    if (first_sqrt == NULL)
+    {
+        printf("Malloc failed\n");
+        exit(EXIT_FAILURE);
+    }
 
     // master init the tab and find first sqrt(n) prime numbers
     if (rank == 0)
@@ -181,7 +189,7 @@ int main(int argc, char **argv)
     }
 
     // broadcast the sieved numbers to all processes
-    MPI_Bcast(first_sqrt, sqrt_n_minus_1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(first_sqrt, sqrt_n_minus_1, MPI_INT, 0, alive);
 
     if (rank != nb_process - 1)
     {
@@ -192,6 +200,12 @@ int main(int argc, char **argv)
     //        chunk, remaining);
     // finding the range
     int *numbers_to_sieve = malloc(chunk * sizeof(int));
+    if (numbers_to_sieve == NULL)
+    {
+        printf("Malloc failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     int range_start = sqrt_n + chunk * rank + 1 - remaining * rank;
     int range_end = sqrt_n + chunk * (rank + 1) - remaining * rank;
     printf("range_start %d, range_end %d\n", range_start, range_end);
@@ -255,7 +269,7 @@ int main(int argc, char **argv)
 
     int global_inside_count = 0;
     MPI_Reduce(&local_inside_count, &global_inside_count, 1, MPI_INT, MPI_SUM,
-               0, MPI_COMM_WORLD);
+               0, alive);
 
     // now we need to know if there's a sexy number between each chunk
 
@@ -263,9 +277,14 @@ int main(int argc, char **argv)
     // 0 will only send, the last will only recv
 
     int *received_last_6 = malloc(6 * sizeof(int));
+    if (received_last_6 == NULL)
+    {
+        printf("Malloc failed\n");
+        exit(EXIT_FAILURE);
+    }
 
     MPI_Win win;
-    MPI_Win_create(numbers_to_sieve, chunk * sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win);
+    MPI_Win_create(numbers_to_sieve, chunk * sizeof(int), sizeof(int), MPI_INFO_NULL, alive, &win);
 
     if (rank != nb_process - 1)
     {
@@ -283,7 +302,6 @@ int main(int argc, char **argv)
         MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank - 1, 0, win);
         MPI_Get(received_last_6, 6, MPI_INT, rank - 1, chunk - 6, 6, MPI_INT, win);
         MPI_Win_unlock(rank - 1, win);
-
 
         local_between_count = count_sexy_number_between(numbers_to_sieve,
                                                         received_last_6,
@@ -305,7 +323,7 @@ int main(int argc, char **argv)
                1,
                MPI_INT,
                MPI_SUM,
-               0, MPI_COMM_WORLD);
+               0, alive);
 
     // now we need to check with the first sqrt numbers
     if (rank == 0)
