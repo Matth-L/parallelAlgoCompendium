@@ -9,10 +9,10 @@
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 /**********************************************
- * @brief Find the first sqrt(n) prime numbers
+ * @brief Find the first sqrt(n) prime numbers.
  *
- * @param tab
- * @param n
+ * @param tab the tab to sieve.
+ * @param n the size of the tab.
  ***********************************************/
 void find_first_sqrt_prime(int *tab, int n)
 {
@@ -29,12 +29,12 @@ void find_first_sqrt_prime(int *tab, int n)
 }
 
 /**********************************************
- * @brief Count the number of sexy numbers inside a tab
- * No communication needed
+ * @brief Count the number of sexy numbers inside a tab.
+ * No communication needed.
  *
- * @param tab the tab to check
- * @param n the size of the tab
- * @return int the number of sexy numbers
+ * @param tab the tab to check.
+ * @param n the size of the tab.
+ * @return int the number of sexy numbers.
  ***********************************************/
 int count_sexy_number_inside(int *tab, int n, int rank)
 {
@@ -51,14 +51,14 @@ int count_sexy_number_inside(int *tab, int n, int rank)
 }
 
 /**********************************************
- * @brief Count the number of sexy numbers between two tabs
- * The tab to process is already given
+ * @brief Count the number of sexy numbers between two tabs.
+ * The tab to process is already given.
  *
- * @param tab1
- * @param tab2
- * @param n
- * @param rank
- * @return int
+ * @param tab1 the first tab.
+ * @param tab2 the second tab.
+ * @param n the size of the tab.
+ * @param rank the rank of the process.
+ * @return int the number of sexy numbers.
  ***********************************************/
 int count_sexy_number_between(int *tab1, int *tab2, int n, int rank)
 {
@@ -78,10 +78,10 @@ int count_sexy_number_between(int *tab1, int *tab2, int n, int rank)
  * @brief If there are too many threads for the size of the tab, we will reduce
  * the number of threads and adjust the size of the chunk.
  *
- * @param nb_process
- * @param size_of_chunk
- * @param remaining_size
- * @param remainder
+ * @param nb_process the number of process.
+ * @param size_of_chunk the size of the chunk.
+ * @param remaining_size the remaining size of the tab.
+ * @param remainder the remainder of the division.
  */
 void resizer(int *nb_process, int *size_of_chunk, int remaining_size,
              int *remainder)
@@ -89,7 +89,7 @@ void resizer(int *nb_process, int *size_of_chunk, int remaining_size,
     int new_nb_process = *nb_process;
     int new_chunk = remaining_size / new_nb_process;
 
-    // if the number of threads is too big or
+    // If the number of threads is too big or
     if (new_chunk < 6)
     {
         new_chunk = (remaining_size / 6);
@@ -106,13 +106,13 @@ int main(int argc, char **argv)
 {
     double start_sieve = omp_get_wtime();
 
-    // MPI init
+    // MPI initialization.
     MPI_Init(&argc, &argv);
     int rank, nb_process;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &nb_process);
 
-    // check args
+    // Check args.
     if (argc != 2)
     {
         printf("Usage: %s <n>\n", argv[0]);
@@ -123,15 +123,15 @@ int main(int argc, char **argv)
     int sqrt_n = (int)ceil(sqrt(n));
     int sqrt_n_minus_1 = sqrt_n - 1;
 
-    // split the job
-    // we need to find the remaining prime numbers from sqrt(n) to n s
+    // Split the job.
+    // We need to find the remaining prime numbers from sqrt(n) to n s.
     int remaining_size = n - sqrt_n;
     int chunk = remaining_size / nb_process;
     int remaining = 0;
 
     // COMMUNICATOR FOR PROCESS
-    // there might be too much threads for the size of the tab
-    // we will kill the excess of threads
+    // There might be too much threads for the size of the tab.
+    // We will kill the excess of threads.
     if (rank == 0)
     {
         resizer(&nb_process, &chunk, remaining_size, &remaining);
@@ -154,14 +154,14 @@ int main(int argc, char **argv)
         exit(EXIT_SUCCESS);
     }
 
-    // the last one will be bigger, with the remainder
+    // The last one will be bigger, with the remainder.
     if (rank == nb_process - 1)
     {
         remaining = remaining_size % nb_process;
         chunk += remaining;
     }
 
-    // every process will have a copy of the sieved numbers
+    // Every process will have a copy of the sieved numbers.
     int *first_sqrt = malloc(sqrt_n_minus_1 * sizeof(int));
 
     if (first_sqrt == NULL)
@@ -170,7 +170,7 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    // master init the tab and find first sqrt(n) prime numbers
+    // Master init the tab and find first sqrt(n) prime numbers.
     if (rank == 0)
     {
         // init tab
@@ -179,13 +179,13 @@ int main(int argc, char **argv)
             first_sqrt[i] = 1;
         }
 
-        // find first sqrt(n) prime numbers
-        // 0 and 1 are not in this, so we start at 2 and go to sqrt(n)
-        // so first_sqrt[0] is 2 etc.
+        // Find first sqrt(n) prime numbers.
+        // 0 and 1 are not in this, so we start at 2 and go to sqrt(n).
+        // So first_sqrt[0] is 2 etc.
         find_first_sqrt_prime(first_sqrt, sqrt_n_minus_1);
     }
 
-    // broadcast the sieved numbers to all processes
+    // Broadcast the sieved numbers to all processes.
     MPI_Bcast(first_sqrt, sqrt_n_minus_1, MPI_INT, 0, alive);
 
     if (rank != nb_process - 1)
@@ -193,7 +193,7 @@ int main(int argc, char **argv)
         remaining = 0;
     }
 
-    // finding the range
+    // Finding the range.
     int *numbers_to_sieve = malloc(chunk * sizeof(int));
     if (numbers_to_sieve == NULL)
     {
@@ -204,7 +204,7 @@ int main(int argc, char **argv)
     int range_start = sqrt_n + chunk * rank + 1 - remaining * rank;
     int range_end = sqrt_n + chunk * (rank + 1) - remaining * rank;
 
-    // init
+    // Initialization
     for (int i = 0; i < chunk; i++)
     {
         numbers_to_sieve[i] = 1;
@@ -212,7 +212,7 @@ int main(int argc, char **argv)
 
     int step = 0;
 
-    // cross out the numbers
+    // Cross out the numbers.
     // [sqrt(n), chunk]
     for (int i = 0; i < sqrt_n_minus_1; i++)
     {
@@ -231,14 +231,14 @@ int main(int argc, char **argv)
 
     double end_sieve = omp_get_wtime();
 
-    // from this point, they all have an array of size chunk with
-    // 1 if the number is prime, 0 otherwise
-    // example : n = 64 , size = 4, chunk = 14
+    // From this point, they all have an array of size chunk with
+    // 1 if the number is prime, 0 otherwise.
+    // Example : n = 64 , size = 4, chunk = 14
     // first_sqrt = [1, 1, 0, 1, 1 , 1, 0] (2 3 4 5 6 7 8)
     // p0 = (9 10 11 12 13 14 15 16 17 18 19 20 21 22 )
     //      [0 0  1  0  1  0  0  0  1  0  1  0  0  0  ]
 
-    // we have
+    // We have
     // [first_sqrt](with the size of sqrt n)
     // [numbers_to_sieve] * size (with the size of chunk)
 
@@ -252,11 +252,11 @@ int main(int argc, char **argv)
 
     double start_counting_couple = omp_get_wtime();
 
-    // finding sexy_numbers inside each chunk
+    // Finding sexy_numbers inside each chunk.
     int local_inside_count = count_sexy_number_inside(numbers_to_sieve,
                                                       chunk,
                                                       rank);
-    // print the first 10 number of numbers_to_sieve
+    // Print the first 10 number of numbers_to_sieve.
 
     int global_inside_count = 0;
 
@@ -264,10 +264,10 @@ int main(int argc, char **argv)
     MPI_Reduce(&local_inside_count, &global_inside_count, 1, MPI_INT, MPI_SUM,
                0, alive);
 
-    // now we need to know if there's a sexy number between each chunk
+    // Now we need to know if there's a sexy number between each chunk.
 
-    // we use the last 6 of the previous rank to check if there's a sexy number
-    // 0 will only send, the last will only recv
+    // We use the last 6 of the previous rank to check if there's a sexy number.
+    // 0 will only send, the last will only recv.
 
     int *received_last_6 = malloc(6 * sizeof(int));
     if (received_last_6 == NULL)
@@ -300,7 +300,7 @@ int main(int argc, char **argv)
                                                         6,
                                                         rank);
     }
-    else // 0 counts the first prime number while the other counts between
+    else // 0 counts the first prime number while the other counts between.
     {
         if (sqrt_n > 6)
         {
@@ -324,7 +324,7 @@ int main(int argc, char **argv)
                MPI_SUM,
                0, alive);
 
-    // now we need to check with the first sqrt numbers
+    // Now we need to check with the first sqrt numbers.
     if (rank == 0)
     {
         int total = global_between_count + global_inside_count;
