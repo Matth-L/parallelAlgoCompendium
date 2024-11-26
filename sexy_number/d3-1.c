@@ -171,6 +171,12 @@ int main(int argc, char **argv)
     // every process will have a copy of the sieved numbers
     int *first_sqrt = malloc(sqrt_n_minus_1 * sizeof(int));
 
+    if (first_sqrt == NULL)
+    {
+        printf("Malloc failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     // master init the tab and find first sqrt(n) prime numbers
     if (rank == 0)
     {
@@ -194,10 +200,14 @@ int main(int argc, char **argv)
         remaining = 0;
     }
 
-    // printf("rank %d, nb_process %d, chunk %d, remaining %d\n", rank, nb_process,
-    //        chunk, remaining);
     // finding the range
     int *numbers_to_sieve = malloc(chunk * sizeof(int));
+    if (numbers_to_sieve == NULL)
+    {
+        printf("Malloc failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     int range_start = sqrt_n + chunk * rank + 1 - remaining * rank;
     int range_end = sqrt_n + chunk * (rank + 1) - remaining * rank;
 
@@ -265,6 +275,12 @@ int main(int argc, char **argv)
     // 0 will only send, the last will only recv
 
     int *received_last_6 = malloc(6 * sizeof(int));
+    if (received_last_6 == NULL)
+    {
+        printf("Malloc failed\n");
+        exit(EXIT_FAILURE);
+    }
+    
 
     if (rank != nb_process - 1)
     {
