@@ -1,5 +1,26 @@
-# ParallelAlgoCompendium
+# ParallelAlgoCompendium 📚
 
-## Merge sort
+This repository showcases three projects aimed at parallelizing algorithms using Pthreads/OpenMP, MPI, and OpenCL.
 
-This project focuses on implementing and analyzing the performance of recursive parallel and sequential merge sort algorithms. The parallel version utilizes the pthread library and OpenMP. Both programs are written in C, and their performance is evaluated across various thread counts.
+## Merge Sort 🔀
+
+The focus is on implementing and analyzing the performance of recursive parallel and sequential merge sort algorithms. The parallel version uses the pthread library and OpenMP. Both implementations are written in C, with performance evaluated across different thread counts.
+
+To test, execute the following command:
+
+```bash
+cd merge_sort
+make
+```
+
+## Sexy Number 🔢
+
+The goal is to parallelize the Sieve of Eratosthenes to find sexy numbers, optimizing workload distribution to minimize memory usage with MPI.
+
+To test, execute the following command:
+
+```bash
+cd sexy_number
+make p1 #we only used MPI_send, MPI_get
+make p2 #we replaced them with MPI_Put and MPI_send
+```
