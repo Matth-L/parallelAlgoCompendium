@@ -45,7 +45,6 @@ int count_sexy_number_inside(int *tab, int n, int rank)
         if (tab[i] && tab[i + 6])
         {
             count++;
-            // printf("rank %d, sexy number inside %d and %d\n", rank, i, i + 6);
         }
     }
     return count;
@@ -70,7 +69,6 @@ int count_sexy_number_between(int *tab1, int *tab2, int n, int rank)
         if (tab1[i] && tab2[i])
         {
             count++;
-            // printf("rank %d, sexy number between %d and %d\n", rank, i, i + 6);
         }
     }
     return count;
@@ -260,7 +258,9 @@ int main(int argc, char **argv)
     double start_counting_couple = omp_get_wtime();
 
     // finding sexy_numbers inside each chunk
-    int local_inside_count = count_sexy_number_inside(numbers_to_sieve, chunk, rank);
+    int local_inside_count = count_sexy_number_inside(numbers_to_sieve,
+                                                      chunk,
+                                                      rank);
     // print the first 10 number of numbers_to_sieve
 
     int global_inside_count = 0;
@@ -280,7 +280,6 @@ int main(int argc, char **argv)
         printf("Malloc failed\n");
         exit(EXIT_FAILURE);
     }
-    
 
     if (rank != nb_process - 1)
     {
@@ -310,9 +309,16 @@ int main(int argc, char **argv)
     {
         if (sqrt_n > 6)
         {
-            local_between_count += count_sexy_number_inside(first_sqrt, sqrt_n_minus_1, rank);
+            local_between_count +=
+                count_sexy_number_inside(first_sqrt,
+                                         sqrt_n_minus_1,
+                                         rank);
             int min_size = MIN(sqrt_n_minus_1, 6);
-            local_between_count += count_sexy_number_between(&first_sqrt[sqrt_n_minus_1 - 6], numbers_to_sieve, min_size, rank);
+            local_between_count +=
+                count_sexy_number_between(&first_sqrt[sqrt_n_minus_1 - 6],
+                                          numbers_to_sieve,
+                                          min_size,
+                                          rank);
         }
     }
 
@@ -335,7 +341,8 @@ int main(int argc, char **argv)
     if (rank == 0)
     {
         printf("Time to sieve: %f\n", end_sieve - start_sieve);
-        printf("Time to count: %f\n", end_counting_couple - start_counting_couple);
+        printf("Time to count: %f\n", end_counting_couple -
+                                          start_counting_couple);
     }
 
     free(first_sqrt);
