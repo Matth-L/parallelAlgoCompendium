@@ -146,19 +146,13 @@ int main(int argc, char **argv)
     MPI_Bcast(&remaining, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // COMMUNICATOR FOR PROCESS TO KILL
-    int color = (rank < nb_process) ? 0 : MPI_UNDEFINED;
-    MPI_Comm alive;
-    MPI_Comm_split(MPI_COMM_WORLD, color, rank, &alive);
-
-    if (color == MPI_UNDEFINED)
+    MPI_Comm to_kill;
+    if (rank >= nb_process)
     {
-        printf("Rank %d is too much, exiting early.\n", rank);
-        MPI_Finalize();
-        exit(EXIT_SUCCESS);
+        MPI_Comm_split(MPI_COMM_WORLD, 1, rank, &to_kill);
+        MPI_Abort(to_kill, 0);
+        return 0;
     }
-
-    printf("Rank %d is good\n", rank);
-    fflush(stdout);
 
     // the last one will be bigger, with the remainder
     // TODO should change when threads number is too big
@@ -187,7 +181,7 @@ int main(int argc, char **argv)
     }
 
     // broadcast the sieved numbers to all processes
-    MPI_Bcast(first_sqrt, sqrt_n_minus_1, MPI_INT, 0, alive);
+    MPI_Bcast(first_sqrt, sqrt_n_minus_1, MPI_INT, 0, MPI_COMM_WORLD);
 
     if (rank != nb_process - 1)
     {
@@ -200,7 +194,8 @@ int main(int argc, char **argv)
     int *numbers_to_sieve = malloc(chunk * sizeof(int));
     int range_start = sqrt_n + chunk * rank + 1 - remaining * rank;
     int range_end = sqrt_n + chunk * (rank + 1) - remaining * rank;
-
+    printf("range_start %d, range_end %d\n", range_start, range_end);
+    printf("sqrt_n %d, sqrt_n_minus_1 %d\n", sqrt_n, sqrt_n_minus_1);
     // init
     for (int i = 0; i < chunk; i++)
     {
@@ -253,11 +248,14 @@ int main(int argc, char **argv)
     int local_inside_count = count_sexy_number_inside(numbers_to_sieve, chunk, rank);
     // print the first 10 number of numbers_to_sieve
 
-    int global_inside_count = 0;
+    // for (int i = 0; i < 10; i++)
+    // {
+    //     printf("rank %d, number %d, value %d\n", rank, i, numbers_to_sieve[i]);
+    // }
 
-    fflush(stdout);
+    int global_inside_count = 0;
     MPI_Reduce(&local_inside_count, &global_inside_count, 1, MPI_INT, MPI_SUM,
-               0, alive);
+               0, MPI_COMM_WORLD);
 
     // now we need to know if there's a sexy number between each chunk
 
@@ -266,9 +264,14 @@ int main(int argc, char **argv)
 
     int *received_last_6 = malloc(6 * sizeof(int));
 
+    MPI_Win win;
+    MPI_Win_create(numbers_to_sieve, chunk * sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win);
+
     if (rank != nb_process - 1)
     {
-        MPI_Send(&numbers_to_sieve[chunk - 6], 6, MPI_INT, rank + 1, 0, alive);
+        MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank + 1, 0, win);
+        MPI_Put(&numbers_to_sieve[chunk - 6], 6, MPI_INT, rank + 1, 0, 6, MPI_INT, win);
+        MPI_Win_unlock(rank + 1, win);
     }
 
     int local_between_count = 0;
@@ -277,13 +280,10 @@ int main(int argc, char **argv)
 
     if (rank != 0)
     {
-        MPI_Recv(received_last_6,
-                 6,
-                 MPI_INT,
-                 rank - 1,
-                 0,
-                 alive,
-                 MPI_STATUS_IGNORE);
+        MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rank - 1, 0, win);
+        MPI_Get(received_last_6, 6, MPI_INT, rank - 1, chunk - 6, 6, MPI_INT, win);
+        MPI_Win_unlock(rank - 1, win);
+
 
         local_between_count = count_sexy_number_between(numbers_to_sieve,
                                                         received_last_6,
@@ -305,7 +305,7 @@ int main(int argc, char **argv)
                1,
                MPI_INT,
                MPI_SUM,
-               0, alive);
+               0, MPI_COMM_WORLD);
 
     // now we need to check with the first sqrt numbers
     if (rank == 0)
@@ -322,6 +322,7 @@ int main(int argc, char **argv)
         printf("Time to count: %f\n", end_counting_couple - start_counting_couple);
     }
 
+    MPI_Win_free(&win);
     free(first_sqrt);
     free(numbers_to_sieve);
     free(received_last_6);
