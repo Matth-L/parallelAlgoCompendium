@@ -322,10 +322,10 @@ int main(int argc, char **argv)
         printf("Time to count: %f\n", end_counting_couple - start_counting_couple);
     }
 
+    MPI_Win_free(&win);
     free(first_sqrt);
     free(numbers_to_sieve);
     free(received_last_6);
-    MPI_Win_free(&win);
     MPI_Finalize();
     return 0;
 }
