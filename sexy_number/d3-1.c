@@ -36,7 +36,7 @@ void find_first_sqrt_prime(int *tab, int n)
  * @param n the size of the tab.
  * @return int the number of sexy numbers.
  ***********************************************/
-int count_sexy_number_inside(int *tab, int n, int rank)
+int count_sexy_number_inside(int *tab, int n)
 {
     int count = 0;
     for (int i = 0; i < n - 6; i++)
@@ -92,10 +92,9 @@ void resizer(int *nb_process, int *size_of_chunk, int remaining_size,
     // If the number of threads is too big or
     if (new_chunk < 6)
     {
-        new_chunk = (remaining_size / 6);
+        new_nb_process = (remaining_size / 6);
+        new_chunk = 6;
     }
-
-    new_nb_process = (remaining_size / new_chunk);
 
     *remainder = remaining_size % new_nb_process;
     *nb_process = new_nb_process;
@@ -134,9 +133,7 @@ int main(int argc, char **argv)
     // We will kill the excess of threads.
     if (rank == 0)
     {
-        printf("nb_process : %d\n", nb_process);
         resizer(&nb_process, &chunk, remaining_size, &remaining);
-        printf("nb_process : %d\n", nb_process);
         broadcast_data[0] = nb_process;
         broadcast_data[1] = chunk;
         broadcast_data[2] = remaining;
@@ -146,8 +143,6 @@ int main(int argc, char **argv)
     nb_process = broadcast_data[0];
     chunk = broadcast_data[1];
     remaining = broadcast_data[2];
-
-    printf("Rank %d, nb_process %d, chunk %d, remaining %d\n", rank, nb_process, chunk, remaining);
 
     // COMMUNICATOR FOR PROCESS TO KILL
     int color = (rank < nb_process) ? 0 : MPI_UNDEFINED;
@@ -274,8 +269,7 @@ int main(int argc, char **argv)
 
     // Finding sexy_numbers inside each chunk.
     int local_inside_count = count_sexy_number_inside(numbers_to_sieve,
-                                                      chunk,
-                                                      rank);
+                                                      chunk);
     // Print the first 10 number of numbers_to_sieve.
 
     int global_inside_count = 0;
@@ -298,8 +292,6 @@ int main(int argc, char **argv)
 
     if (rank != nb_process - 1)
     {
-        printf("nb_process : %d\n", nb_process);
-        printf("Sending from %d to %d\n", rank, rank + 1);
         MPI_Send(&numbers_to_sieve[chunk - 6], 6, MPI_INT, rank + 1, 0, alive);
     }
 
@@ -328,15 +320,14 @@ int main(int argc, char **argv)
         {
             local_between_count +=
                 count_sexy_number_inside(first_sqrt,
-                                         sqrt_n_minus_1,
-                                         rank);
-            int min_size = MIN(sqrt_n_minus_1, 6);
-            local_between_count +=
-                count_sexy_number_between(&first_sqrt[sqrt_n_minus_1 - 6],
-                                          numbers_to_sieve,
-                                          min_size,
-                                          rank);
+                                         sqrt_n_minus_1);
         }
+        int min_size = MIN(sqrt_n_minus_1, 6);
+        local_between_count =
+            count_sexy_number_between(&first_sqrt[sqrt_n - 6],
+                                      numbers_to_sieve,
+                                      min_size,
+                                      rank);
     }
 
     MPI_Reduce(&local_between_count,

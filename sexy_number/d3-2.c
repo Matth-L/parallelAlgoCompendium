@@ -78,7 +78,7 @@ int count_sexy_number_between(int *tab1, int *tab2, int n, int rank)
  * @brief If there are too many threads for the size of the tab, we will reduce
  * the number of threads and adjust the size of the chunk.
  *
- * @param nb_process the number of process. 
+ * @param nb_process the number of process.
  * @param size_of_chunk the size of the chunk.
  * @param remaining_size the remaining size of the tab.
  * @param remainder the remainder of the division.
@@ -92,10 +92,9 @@ void resizer(int *nb_process, int *size_of_chunk, int remaining_size,
     // If the number of threads is too big or
     if (new_chunk < 6)
     {
-        new_chunk = (remaining_size / 6);
+        new_nb_process = (remaining_size / 6);
+        new_chunk = 6;
     }
-
-    new_nb_process = (remaining_size / new_chunk);
 
     *remainder = remaining_size % new_nb_process;
     *nb_process = new_nb_process;
