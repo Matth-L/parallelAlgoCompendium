@@ -36,7 +36,7 @@ void find_first_sqrt_prime(int *tab, int n)
  * @param n the size of the tab.
  * @return int the number of sexy numbers.
  ***********************************************/
-int count_sexy_number_inside(int *tab, int n, int rank)
+int count_sexy_number_inside(int *tab, int n)
 {
     int count = 0;
     for (int i = 0; i < n - 6; i++)
@@ -60,7 +60,7 @@ int count_sexy_number_inside(int *tab, int n, int rank)
  * @param rank the rank of the process.
  * @return int the number of sexy numbers.
  ***********************************************/
-int count_sexy_number_between(int *tab1, int *tab2, int n, int rank)
+int count_sexy_number_between(int *tab1, int *tab2, int n)
 {
 
     int count = 0;
@@ -251,9 +251,10 @@ int main(int argc, char **argv)
 
     // Finding sexy_numbers inside each chunk.
     int local_inside_count =
-        count_sexy_number_inside(numbers_to_sieve, chunk, rank);
+        count_sexy_number_inside(numbers_to_sieve, chunk);
 
     int global_inside_count = 0;
+
     MPI_Reduce(&local_inside_count, &global_inside_count, 1, MPI_INT, MPI_SUM,
                0, alive);
 
@@ -309,8 +310,7 @@ int main(int argc, char **argv)
 
         local_between_count = count_sexy_number_between(numbers_to_sieve,
                                                         received_last_6,
-                                                        6,
-                                                        rank);
+                                                        6);
     }
     else // 0 counts the first prime number while the other counts between.
     {
@@ -318,15 +318,13 @@ int main(int argc, char **argv)
         {
             local_between_count +=
                 count_sexy_number_inside(first_sqrt,
-                                         sqrt_n_minus_1,
-                                         rank);
-            int min_size = MIN(sqrt_n_minus_1, 6);
-            local_between_count +=
-                count_sexy_number_between(&first_sqrt[sqrt_n_minus_1 - 6],
-                                          numbers_to_sieve,
-                                          min_size,
-                                          rank);
+                                         sqrt_n_minus_1);
         }
+        int min_size = MIN(sqrt_n_minus_1, 6);
+        local_between_count +=
+            count_sexy_number_between(&first_sqrt[sqrt_n_minus_1 - min_size],
+                                      numbers_to_sieve,
+                                      min_size);
     }
 
     MPI_Reduce(&local_between_count,

@@ -259,7 +259,6 @@ int main(int argc, char **argv)
 
     int global_inside_count = 0;
 
-    fflush(stdout);
     MPI_Reduce(&local_inside_count, &global_inside_count, 1, MPI_INT, MPI_SUM,
                0, alive);
 
