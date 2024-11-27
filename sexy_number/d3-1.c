@@ -128,20 +128,26 @@ int main(int argc, char **argv)
     int remaining_size = n - sqrt_n;
     int chunk = remaining_size / nb_process;
     int remaining = 0;
-
+    int broadcast_data[3];
     // COMMUNICATOR FOR PROCESS
     // There might be too much threads for the size of the tab.
     // We will kill the excess of threads.
     if (rank == 0)
     {
+        printf("nb_process : %d\n", nb_process);
         resizer(&nb_process, &chunk, remaining_size, &remaining);
+        printf("nb_process : %d\n", nb_process);
+        broadcast_data[0] = nb_process;
+        broadcast_data[1] = chunk;
+        broadcast_data[2] = remaining;
     }
 
-    int broadcast_data[3] = {nb_process, chunk, remaining};
     MPI_Bcast(broadcast_data, 3, MPI_INT, 0, MPI_COMM_WORLD);
     nb_process = broadcast_data[0];
     chunk = broadcast_data[1];
     remaining = broadcast_data[2];
+
+    printf("Rank %d, nb_process %d, chunk %d, remaining %d\n", rank, nb_process, chunk, remaining);
 
     // COMMUNICATOR FOR PROCESS TO KILL
     int color = (rank < nb_process) ? 0 : MPI_UNDEFINED;
@@ -213,17 +219,32 @@ int main(int argc, char **argv)
 
     // cross out the numbers
     // [sqrt(n), chunk]
+    // for (int i = 0; i < sqrt_n_minus_1; i++)
+    // {
+    //     if (first_sqrt[i])
+    //     {
+    //         step = i + 2;
+    //         int first_multiple =
+    //             MAX(range_start + (step - range_start % step) % step,
+    //                 step * step);
+    //         for (int j = first_multiple; j <= range_end; j += step)
+    //         {
+    //             numbers_to_sieve[j - range_start] = 0;
+    //         }
+    //     }
+    // }
+
     for (int i = 0; i < sqrt_n_minus_1; i++)
     {
         if (first_sqrt[i])
         {
             step = i + 2;
-            int first_multiple =
-                MAX(range_start + (step - range_start % step) % step,
-                    step * step);
-            for (int j = first_multiple; j <= range_end; j += step)
+            for (int j = range_start; j <= range_end; j++)
             {
-                numbers_to_sieve[j - range_start] = 0;
+                if (j % step == 0)
+                {
+                    numbers_to_sieve[j - range_start] = 0;
+                }
             }
         }
     }
@@ -277,6 +298,8 @@ int main(int argc, char **argv)
 
     if (rank != nb_process - 1)
     {
+        printf("nb_process : %d\n", nb_process);
+        printf("Sending from %d to %d\n", rank, rank + 1);
         MPI_Send(&numbers_to_sieve[chunk - 6], 6, MPI_INT, rank + 1, 0, alive);
     }
 
@@ -294,10 +317,10 @@ int main(int argc, char **argv)
                  alive,
                  MPI_STATUS_IGNORE);
 
-        local_between_count = count_sexy_number_between(numbers_to_sieve,
-                                                        received_last_6,
-                                                        6,
-                                                        rank);
+        local_between_count += count_sexy_number_between(numbers_to_sieve,
+                                                         received_last_6,
+                                                         6,
+                                                         rank);
     }
     else // 0 counts the first prime number while the other counts between.
     {
