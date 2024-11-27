@@ -208,22 +208,18 @@ int main(int argc, char **argv)
     {
         numbers_to_sieve[i] = 1;
     }
-
     int step = 0;
-
-    // cross out the numbers
-    // [sqrt(n), chunk]
     for (int i = 0; i < sqrt_n_minus_1; i++)
     {
         if (first_sqrt[i])
         {
             step = i + 2;
-            for (int j = range_start; j <= range_end; j++)
+            int first_multiple =
+                MAX(range_start + (step - range_start % step) % step,
+                    step * step);
+            for (int j = first_multiple; j <= range_end; j += step)
             {
-                if (j % step == 0)
-                {
-                    numbers_to_sieve[j - range_start] = 0;
-                }
+                numbers_to_sieve[j - range_start] = 0;
             }
         }
     }
@@ -351,13 +347,13 @@ int main(int argc, char **argv)
         int total = global_between_count + global_inside_count;
         double end_counting_couple = omp_get_wtime();
         printf("Sexy number count : %d\n", total);
-
         printf("Number of process used : %d\n", nb_process);
-
         printf("Time to sieve: %f\n",
                end_sieve - start_sieve);
         printf("Time to count: %f\n",
                end_counting_couple - start_counting_couple);
+        printf("Total time: %f\n",
+               end_counting_couple - start_sieve);
     }
 
     MPI_Win_free(&win);
