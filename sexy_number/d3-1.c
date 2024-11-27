@@ -214,32 +214,17 @@ int main(int argc, char **argv)
 
     // cross out the numbers
     // [sqrt(n), chunk]
-    // for (int i = 0; i < sqrt_n_minus_1; i++)
-    // {
-    //     if (first_sqrt[i])
-    //     {
-    //         step = i + 2;
-    //         int first_multiple =
-    //             MAX(range_start + (step - range_start % step) % step,
-    //                 step * step);
-    //         for (int j = first_multiple; j <= range_end; j += step)
-    //         {
-    //             numbers_to_sieve[j - range_start] = 0;
-    //         }
-    //     }
-    // }
-
     for (int i = 0; i < sqrt_n_minus_1; i++)
     {
         if (first_sqrt[i])
         {
             step = i + 2;
-            for (int j = range_start; j <= range_end; j++)
+            int first_multiple =
+                MAX(range_start + (step - range_start % step) % step,
+                    step * step);
+            for (int j = first_multiple; j <= range_end; j += step)
             {
-                if (j % step == 0)
-                {
-                    numbers_to_sieve[j - range_start] = 0;
-                }
+                numbers_to_sieve[j - range_start] = 0;
             }
         }
     }
@@ -323,8 +308,8 @@ int main(int argc, char **argv)
                                          sqrt_n_minus_1);
         }
         int min_size = MIN(sqrt_n_minus_1, 6);
-        local_between_count =
-            count_sexy_number_between(&first_sqrt[sqrt_n - 6],
+        local_between_count +=
+            count_sexy_number_between(&first_sqrt[sqrt_n_minus_1 - min_size],
                                       numbers_to_sieve,
                                       min_size,
                                       rank);
