@@ -6,7 +6,7 @@ This repository showcases three projects aimed at parallelizing algorithms using
 
 The focus is on implementing and analyzing the performance of recursive parallel and sequential merge sort algorithms. The parallel version uses the pthread library and OpenMP. Both implementations are written in C, with performance evaluated across different thread counts.
 
-![Merge Sort](./img/merge_sort.png)
+<img src="./img/merge_sort.png" alt="Merge Sort" width="400"/>
 
 To test, execute the following command:
 
@@ -19,7 +19,7 @@ make
 
 The goal is to parallelize the Sieve of Eratosthenes to find sexy numbers, optimizing workload distribution to minimize memory usage with MPI.
 
-![Sexy Number](./img/sexy_number.png)
+<img src="./img/sexy_number.png" alt="Sexy Number" width="400"/>
 
 To test, execute the following command:
 
