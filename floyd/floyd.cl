@@ -7,12 +7,10 @@ __kernel void floyd(int elements, __global int *graph,
   output_graph[i * elements + j] = graph[i * elements + j];
 
   for (int k = 0; k < elements; k++) {
-    barrier(CLK_GLOBAL_MEM_FENCE);
     if (output_graph[i * elements + j] >
         output_graph[i * elements + k] + output_graph[k * elements + j]) {
       output_graph[i * elements + j] =
           output_graph[i * elements + k] + output_graph[k * elements + j];
     }
-    barrier(CLK_GLOBAL_MEM_FENCE);
   }
 }
