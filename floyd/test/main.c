@@ -426,43 +426,27 @@ int main()
     fflush(stdout);
 
     status = clSetKernelArg(
-
         kernel,
-
         0,
-
         sizeof(cl_int),
-
         (void *)&elements);
 
     status = clSetKernelArg(
-
         kernel,
-
         1,
-
         sizeof(cl_mem),
-
         (void *)&bufferA);
 
     status = clSetKernelArg(
-
         kernel,
-
         2,
-
         sizeof(cl_mem),
-
         (void *)&bufferB);
 
     status = clSetKernelArg(
-
         kernel,
-
         3,
-
         sizeof(cl_mem),
-
         (void *)&bufferC);
 
     //-----------------------------------------------------
