@@ -1,8 +1,6 @@
 // Multiplication de 2 matrices carrées
 
 // System includes
-#define CL_TARGET_OPENCL_VERSION 120 // For OpenCL 1.2
-
 #include <stdio.h>
 
 #include <sys/stat.h>
@@ -244,7 +242,7 @@ int main()
 
         context,
 
-        devices[1],
+        devices[0],
 
         0,
 
