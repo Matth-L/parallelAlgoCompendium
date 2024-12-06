@@ -419,77 +419,21 @@ int main(int argc, char **argv)
     printf("Passage des paramètres\n");
     fflush(stdout);
 
-    status = clSetKernelArg(kernel, 0, sizeof(cl_int),
-                            (void *)&elements);
-    if (status)
+    for (int k = 0; k < elements; k++)
     {
-        printf("ERREUR A LA CONFIGURATION D'ARGUMENTS 1\n");
+        clSetKernelArg(kernel, 0, sizeof(cl_int),
+                       (void *)&elements);
+        clSetKernelArg(kernel, 1, sizeof(cl_mem),
+                       (void *)&bufferGraph);
+        clSetKernelArg(kernel, 2, sizeof(cl_mem),
+                       (void *)&output_buffer_graph);
+        clSetKernelArg(kernel, 3, sizeof(cl_int),
+                       (void *)&k);
+        size_t global_work_size[] = {elements, elements};
+        clEnqueueNDRangeKernel(cmdQueue, kernel, 2, NULL, global_work_size, NULL, 0, NULL, NULL);
+
+        clEnqueueCopyBuffer(cmdQueue, output_buffer_graph, bufferGraph, 0, 0, sizeof(int) * elements * elements, 0, NULL, NULL);
     }
-    status = clSetKernelArg(kernel, 1, sizeof(cl_mem),
-                            (void *)&bufferGraph);
-    if (status)
-    {
-        printf("ERREUR A LA CONFIGURATION D'ARGUMENTS 2\n");
-    }
-    status = clSetKernelArg(kernel, 2, sizeof(cl_mem),
-                            (void *)&output_buffer_graph);
-    if (status)
-    {
-        printf("ERREUR A LA CONFIGURATION D'ARGUMENTS 3\n");
-    }
-
-    //-----------------------------------------------------
-    // STEP 10: Configure the work-item structure
-    //-----------------------------------------------------
-    // Define an index space (global work size) of work
-    // items for execution. A workgroup size (local work size) is not
-    // required, but can be used.
-
-    size_t MaxGroup;
-    clGetDeviceInfo(devices[0],
-                    CL_DEVICE_MAX_WORK_GROUP_SIZE,
-                    sizeof(size_t),
-                    &MaxGroup,
-                    NULL);
-
-    printf("CL_DEVICE_MAX_WORK_GROUP_SIZE = %d\n", (int)MaxGroup);
-
-    size_t MaxItems[3];
-    clGetDeviceInfo(devices[0],
-                    CL_DEVICE_MAX_WORK_ITEM_SIZES,
-                    3 * sizeof(size_t),
-                    MaxItems,
-                    NULL);
-
-    printf("CL_DEVICE_MAX_WORK_ITEM_SIZES = (%d, %d, %d)\n",
-           (int)MaxItems[0], (int)MaxItems[1], (int)MaxItems[2]);
-
-    size_t globalWorkSize[2] = {elements, elements};
-    size_t localWorkSize[3] = {20, 20};
-
-    // There are 'elements' work-items
-
-    //-----------------------------------------------------
-    // STEP 11: Enqueue the kernel for execution
-    //-----------------------------------------------------
-    // Execute the kernel by using clEnqueueNDRangeKernel().
-    // 'globalWorkSize' is the 1D dimension of the work-items
-
-    printf("Debut des appels\n");
-
-    status = clEnqueueNDRangeKernel(cmdQueue,
-                                    kernel,
-                                    2,
-                                    NULL,
-                                    globalWorkSize,
-                                    NULL,
-                                    0,
-                                    NULL,
-                                    NULL);
-
-    printf("Fin premier appel: status=%d\n", status);
-
-    clFinish(cmdQueue); // Pas nécessaire car la pile a été créée "In-order"
 
     //-----------------------------------------------------
     // STEP 12: Read the output buffer back to the host
@@ -513,8 +457,6 @@ int main(int argc, char **argv)
     printf("graph after floyd\n");
     print_graph(output_graph, elements);
 
-    printf("graph before floyd github\n");
-    print_graph(graph, elements);
     floydWarshall(graph, elements);
     printf("graph after floyd github\n");
     print_graph(graph, elements);
