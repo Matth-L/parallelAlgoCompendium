@@ -1,16 +1,15 @@
+
 __kernel void floyd(int elements, __global int *graph,
-                    __global int *output_graph) {
+                    __global int *output_graph, int k) {
+  int i = get_global_id(0); // Row index
+  int j = get_global_id(1); // Column index
 
-  int i = get_global_id(0);
-  int j = get_global_id(1);
+  // Only process valid indices
+  if (i < elements && j < elements) {
+    int current = graph[i * elements + j];
+    int via_k = graph[i * elements + k] + graph[k * elements + j];
 
-  output_graph[i * elements + j] = graph[i * elements + j];
-
-  for (int k = 0; k < elements; k++) {
-    if (output_graph[i * elements + j] >
-        output_graph[i * elements + k] + output_graph[k * elements + j]) {
-      output_graph[i * elements + j] =
-          output_graph[i * elements + k] + output_graph[k * elements + j];
-    }
+    // Update the output matrix only if a shorter path is found
+    output_graph[i * elements + j] = (current > via_k) ? via_k : current;
   }
 }
