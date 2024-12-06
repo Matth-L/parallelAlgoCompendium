@@ -213,9 +213,6 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    printf("graph before floyd\n");
-    print_graph(graph, elements);
-
     // Load the OpenCL code
     char *programSource = load_program_source("./floyd.cl");
 
@@ -454,12 +451,7 @@ int main(int argc, char **argv)
         printf("output_buffer_graph is NULL\n");
     }
 
-    printf("graph after floyd\n");
-    print_graph(output_graph, elements);
-
     floydWarshall(graph, elements);
-    printf("graph after floyd github\n");
-    print_graph(graph, elements);
 
     int error_count = 0;
 
