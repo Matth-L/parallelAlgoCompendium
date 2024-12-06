@@ -10,7 +10,7 @@
 #include <assert.h>
 #include <CL/cl.h>
 
-#define INF INT8_MAX
+#define INF 1E9
 
 /**********************************************
  * @brief build the graph using the following
@@ -127,14 +127,33 @@ void print_graph(int *graph, int n)
 
 void check_results(int *graph, int *output_graph, int n)
 {
+    int correct = 1;
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
         {
-            assert(graph[i * n + j] == output_graph[i * n + j]);
+            if (graph[i * n + j] != output_graph[i * n + j])
+            {
+                correct = 0;
+                printf("Mismatch at [%d][%d]: expected %d, got %d\n",
+                       i,
+                       j,
+                       graph[i * n + j],
+                       output_graph[i * n + j]);
+            }
         }
     }
-    printf("The results are correct\n");
+    if (correct)
+    {
+        printf("The results are correct\n");
+    }
+    else
+    {
+        printf("Graph:\n");
+        print_graph(graph, n);
+        printf("Output Graph:\n");
+        print_graph(output_graph, n);
+    }
 }
 
 /**********************************************
@@ -224,7 +243,7 @@ int main(int argc, char **argv)
     size_t datasize = sizeof(int) * elements * elements;
 
     // initialize output_graph
-    int *output_graph = malloc(datasize);
+    int *output_graph = calloc(elements * elements, sizeof(int));
 
     // Load the OpenCL code
     char *programSource = load_program_source("./floyd.cl");
@@ -443,17 +462,15 @@ int main(int argc, char **argv)
 
     size_t global_work_size[] = {elements, elements};
 
+    clSetKernelArg(kernel, 0, sizeof(cl_int), (void *)&elements);
+    clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&bufferGraph);
+    clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&output_buffer_graph);
+
     for (int k = 0; k < elements; k++)
     {
-        clSetKernelArg(kernel, 0, sizeof(cl_int),
-                       (void *)&elements);
-        clSetKernelArg(kernel, 1, sizeof(cl_mem),
-                       (void *)&bufferGraph);
-        clSetKernelArg(kernel, 2, sizeof(cl_mem),
-                       (void *)&output_buffer_graph);
-        clSetKernelArg(kernel, 3, sizeof(cl_int),
-                       (void *)&k);
+        clSetKernelArg(kernel, 3, sizeof(cl_int), (void *)&k);
 
+        cl_event kernel_event, copy_event;
         clEnqueueNDRangeKernel(cmdQueue,
                                kernel,
                                2,
@@ -462,7 +479,7 @@ int main(int argc, char **argv)
                                NULL,
                                0,
                                NULL,
-                               NULL);
+                               &kernel_event);
 
         clEnqueueCopyBuffer(cmdQueue,
                             output_buffer_graph,
@@ -470,9 +487,13 @@ int main(int argc, char **argv)
                             0,
                             0,
                             datasize,
-                            0,
-                            NULL,
-                            NULL);
+                            1,
+                            &kernel_event, // wait for the kernel to finish
+                            &copy_event);
+
+        clWaitForEvents(1, &copy_event); // wait that the copy is finished
+        clReleaseEvent(kernel_event);
+        clReleaseEvent(copy_event);
     }
 
     //-----------------------------------------------------
@@ -488,12 +509,6 @@ int main(int argc, char **argv)
                         0,
                         NULL,
                         NULL);
-
-    // the value are copied to the output_graph, it should not be null
-    if (output_buffer_graph == NULL)
-    {
-        printf("output_buffer_graph is NULL\n");
-    }
 
     //-----------------------------------------------------
     // STEP 11: Checking the results with a sequential algorithm
