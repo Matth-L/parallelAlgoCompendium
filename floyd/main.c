@@ -10,18 +10,18 @@
 #include <assert.h>
 #include <CL/cl.h>
 
-#define INF 1e9
+#define INF INT8_MAX
 
 /**********************************************
  * @brief build the graph using the following
  * instruction :
  *
  * "
- * Il y a n noeuds numerotees de 0 a n − 1;
- * Pour tout 0 ≤ i ≤ n − 1 l’arc de i a i vaut 0;
- * Pour tout noeud i < n − 1, il y a un arc de i a i + 1 de longueur 2;
- * Il y a un arc de n − 1 `a 0 de longueur 5;
- * Tous les autres arcs valent 5n.
+ * There are n nodes numbered from 0 to n - 1;
+ * For all 0 ≤ i ≤ n - 1, the arc from i to i is 0;
+ * For all nodes i < n - 1, there is an arc from i to i + 1 of length 2;
+ * There is an arc from n - 1 to 0 of length 5;
+ * All other arcs are 5n.
  * "
  *
  * @param n the number of nodes
@@ -32,7 +32,7 @@ void init_graph(int n, int **graph)
     *graph = (int *)malloc(n * n * sizeof(int));
     if (*graph == NULL)
     {
-        printf("Error allocating memory\n");
+        printf("Error allocating memory in init_graph\n");
         exit(EXIT_FAILURE);
     }
 
@@ -80,7 +80,7 @@ void demo_graph(int **graph)
     *graph = (int *)malloc(4 * 4 * sizeof(int));
     if (*graph == NULL)
     {
-        printf("Error allocating memory\n");
+        printf("Error allocating memory in demo_graph\n");
         exit(EXIT_FAILURE);
     }
 
@@ -125,27 +125,36 @@ void print_graph(int *graph, int n)
     }
 }
 
+void check_results(int *graph, int *output_graph, int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            assert(graph[i * n + j] == output_graph[i * n + j]);
+        }
+    }
+    printf("The results are correct\n");
+}
+
+/**********************************************
+ * @brief the sequential floyd-warshall algorithm
+ *
+ * Copied and modified from :
+ * https://github.com/AyushRai09
+ *
+ * @param *graph the graph
+ * @param n the number of nodes
+ ***********************************************/
 void floydWarshall(int *graph, int n)
 {
     int i, j, k;
-
-    /* Add all vertices one by one to the set of intermediate vertices.
-      ---> Before start of a iteration, we have shortest distances between all
-      pairs of vertices such that the shortest distances consider only the
-      vertices in set {0, 1, 2, .. k-1} as intermediate vertices.
-      ----> After the end of a iteration, vertex no. k is added to the set of
-      intermediate vertices and the set becomes {0, 1, 2, .. k} */
     for (k = 0; k < n; k++)
     {
-        // Pick all vertices as source one by one
         for (i = 0; i < n; i++)
         {
-            // Pick all vertices as destination for the
-            // above picked source
             for (j = 0; j < n; j++)
             {
-                // If vertex k is on the shortest path from
-                // i to j, then update the value of graph[i * n + j]
                 if (graph[i * n + k] + graph[k * n + j] < graph[i * n + j])
                     graph[i * n + j] = graph[i * n + k] + graph[k * n + j];
             }
@@ -156,8 +165,8 @@ void floydWarshall(int *graph, int n)
 /**********************************************
  * @brief load the program source
  *
- * @param filename
- * @return char*
+ * @param filename the name of the file
+ * @return char* the source code
  ***********************************************/
 char *load_program_source(const char *filename)
 {
@@ -168,7 +177,7 @@ char *load_program_source(const char *filename)
     fp = fopen(filename, "r");
     if (fp == 0)
     {
-        printf("Echec\n");
+        printf("Load_program_source_failure\n");
         return 0;
     }
     if (stat(filename, &status) == 0)
@@ -182,13 +191,10 @@ char *load_program_source(const char *filename)
 int main(int argc, char **argv)
 {
     // initialize the graph
-    int elements = 1000;
-
+    int elements = 0;
     int *graph = NULL;
 
-    // init output_graph
-    int *output_graph = malloc(elements * elements * sizeof(int *));
-
+    // Checking the arguments
     if (argc == 1)
     {
         printf("Defaulting to 4 nodes\n");
@@ -207,86 +213,89 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
+    // The graph should be initialized
     if (graph == NULL)
     {
-        printf("Error allocating memory\n");
+        printf("Error allocating memory for the graph\n");
         exit(EXIT_FAILURE);
     }
 
-    // Load the OpenCL code
-    char *programSource = load_program_source("./floyd.cl");
-
     // Compute the size of the data
     size_t datasize = sizeof(int) * elements * elements;
+
+    // initialize output_graph
+    int *output_graph = malloc(datasize);
+
+    // Load the OpenCL code
+    char *programSource = load_program_source("./floyd.cl");
+    if (programSource == NULL)
+    {
+        printf("Error loading program source\n");
+        exit(EXIT_FAILURE);
+    }
 
     cl_int status;
 
     //-----------------------------------------------------
     // STEP 1: Discover and initialize the platforms
     //-----------------------------------------------------
+
     cl_uint numPlatforms = 0;
     cl_platform_id *platforms = NULL;
 
-    // Calcul du nombre de plateformes
+    // Compute the number of platforms
     status = clGetPlatformIDs(0, NULL, &numPlatforms);
-    if (status)
+    if (status != CL_SUCCESS)
     {
-        printf("ERREUR A LA RECUPERATION DU NOMBRE DE PLATEFORMES: %d\n",
-               status);
+        printf("Error getting platform IDs: %d\n", status);
+        exit(EXIT_FAILURE);
     }
-
     printf("Number of platforms = %d\n", numPlatforms);
 
-    // Allocation de l'espace
+    // Find the platforms
     platforms = (cl_platform_id *)malloc(numPlatforms * sizeof(cl_platform_id));
-
-    // Trouver les plateformes
     status = clGetPlatformIDs(numPlatforms, platforms, NULL);
-
-    if (status)
+    if (status != CL_SUCCESS)
     {
-        printf("ERREUR A LA RECUPERATION DES PLATEFORMES: %d\n", status);
+        printf("Error retrieving platforms: %d\n", status);
+        exit(EXIT_FAILURE);
     }
 
     char Name[1000];
     clGetPlatformInfo(platforms[0], CL_PLATFORM_NAME, sizeof(Name), Name, NULL);
-
     printf("Name of platform : %s\n", Name);
     fflush(stdout);
 
     //-----------------------------------------------------
     // STEP 2: Discover and initialize the devices
     //-----------------------------------------------------
+
     cl_uint numDevices = 0;
     cl_device_id *devices = NULL;
 
-    // calcul du nombre de périphériques
+    // Compute the number of devices
     status = clGetDeviceIDs(platforms[0],
                             CL_DEVICE_TYPE_ALL,
                             0,
                             NULL,
                             &numDevices);
-
-    if (status)
+    if (status != CL_SUCCESS)
     {
-        printf("ERREUR A LA RECUPERATION DU NOMBRE DE PERIPHERIQUES: %d\n",
-               status);
+        printf("Error getting device IDs: %d\n", status);
+        exit(EXIT_FAILURE);
     }
     printf("Number of devices = %d\n", (int)numDevices);
 
-    // Allocation de l'espace
+    // now that we have the number of devices, we can allocate the space
     devices = (cl_device_id *)malloc(numDevices * sizeof(cl_device_id));
-
-    // Trouver les périphériques
     status = clGetDeviceIDs(platforms[0],
                             CL_DEVICE_TYPE_ALL,
                             numDevices,
                             devices,
                             NULL);
-
-    if (status)
+    if (status != CL_SUCCESS)
     {
-        printf("ERREUR A LA RECUPERATION DES PERIPHERIQUES: %d\n", status);
+        printf("Error retrieving devices: %d\n", status);
     }
 
     for (int i = 0; i < (int)numDevices; i++)
@@ -298,44 +307,57 @@ int main(int argc, char **argv)
     //-----------------------------------------------------
     // STEP 3: Create a context
     //-----------------------------------------------------
-    printf("Création du contexte\n");
+
+    printf("Creating context\n");
     fflush(stdout);
     cl_context context = NULL;
     context = clCreateContext(NULL, 1, &devices[0], NULL, NULL, &status);
 
-    if (status)
+    if (status != CL_SUCCESS)
     {
-        printf("ERREUR A LA CREATION DU CONTEXTE: %d\n", status);
+        printf("Error creating context: %d\n", status);
     }
 
     //-----------------------------------------------------
     // STEP 4: Create a command queue
     //-----------------------------------------------------
-    printf("Création de la file d'attente\n");
-    fflush(stdout);
-    cl_command_queue cmdQueue;
-    cmdQueue = clCreateCommandQueue(context, devices[0], 0, &status);
 
-    if (status)
+    printf("Creating command queue\n");
+    fflush(stdout);
+
+    cl_command_queue_properties p[] = {CL_QUEUE_PROPERTIES,
+                                       CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE,
+                                       0};
+    cl_command_queue cmdQueue;
+
+    cmdQueue = clCreateCommandQueueWithProperties(context,
+                                                  devices[0],
+                                                  p,
+                                                  &status);
+
+    if (status != CL_SUCCESS)
     {
-        printf("ERREUR A LA CREATION DE LA FILE D'ATTENTE: %d\n", status);
+        printf("Error creating command queue: %d\n", status);
     }
 
     //-----------------------------------------------------
     // STEP 5: Create device buffers
     //-----------------------------------------------------
-    printf("Création des buffers\n");
+
+    printf("Creating buffers\n");
     fflush(stdout);
     cl_mem bufferGraph;
     cl_mem output_buffer_graph;
+
+    // We create a buffer for the graph and the output_graph
     bufferGraph = clCreateBuffer(context,
                                  CL_MEM_READ_WRITE,
                                  datasize,
                                  NULL,
                                  &status);
-    if (status)
+    if (status != CL_SUCCESS)
     {
-        printf("ERREUR A LA CREATION DU BUFFER bufferGraph: \n");
+        printf("Error creating buffer bufferGraph: \n");
     }
     output_buffer_graph = clCreateBuffer(context,
                                          CL_MEM_WRITE_ONLY,
@@ -343,14 +365,15 @@ int main(int argc, char **argv)
                                          NULL,
                                          &status);
 
-    if (status)
+    if (status != CL_SUCCESS)
     {
-        printf("ERREUR A LA CREATION DU BUFFER output_buffer_graph \n");
+        printf("Error creating buffer output_buffer_graph \n");
     }
     //-----------------------------------------------------
     // STEP 6: Write host data to device buffers
     //-----------------------------------------------------
-    printf("Ecriture dans les buffers\n");
+
+    printf("Writing to buffers\n");
     fflush(stdout);
 
     status = clEnqueueWriteBuffer(cmdQueue,
@@ -363,14 +386,15 @@ int main(int argc, char **argv)
                                   NULL,
                                   NULL);
 
-    if (status)
+    if (status != CL_SUCCESS)
     {
-        printf("ERREUR A L'ECRITURE: %d\n", status);
+        printf("Error writing to buffer: %d\n", status);
     }
 
     //-----------------------------------------------------
     // STEP 7: Create and compile the program
     //-----------------------------------------------------
+
     printf("CreateProgramWithSource\n");
     fflush(stdout);
     cl_program program =
@@ -380,18 +404,18 @@ int main(int argc, char **argv)
                                   NULL,
                                   &status);
 
-    if (status)
+    if (status != CL_SUCCESS)
     {
-        printf("ERREUR A LA CREATION DU PROGRAMME: %d\n", status);
+        printf("Error creating program: %d\n", status);
     }
 
     printf("Compilation\n");
     fflush(stdout);
 
     status = clBuildProgram(program, 1, &devices[0], NULL, NULL, NULL);
-    if (status)
+    if (status != CL_SUCCESS)
     {
-        printf("ERREUR A LA COMPILATION: %d\n", status);
+        printf("Error compiling program: %d\n", status);
     }
 
     //-----------------------------------------------------
@@ -399,22 +423,25 @@ int main(int argc, char **argv)
     //-----------------------------------------------------
     cl_kernel kernel = NULL;
 
-    printf("Création du kernel\n");
+    printf("Creating kernel\n");
     fflush(stdout);
 
     kernel = clCreateKernel(program, "floyd", &status);
-    if (status)
+    if (status != CL_SUCCESS)
     {
-        printf("ERREUR A LA CREATION DU KERNEL: %d\n", status);
+        printf("Error creating kernel: %d\n", status);
     }
 
     //-----------------------------------------------------
     // STEP 9: Set the kernel arguments
     //-----------------------------------------------------
+
     // Associate the input and output buffers with the
     // kernel using clSetKernelArg()
-    printf("Passage des paramètres\n");
+    printf("Setting kernel arguments\n");
     fflush(stdout);
+
+    size_t global_work_size[] = {elements, elements};
 
     for (int k = 0; k < elements; k++)
     {
@@ -426,14 +453,30 @@ int main(int argc, char **argv)
                        (void *)&output_buffer_graph);
         clSetKernelArg(kernel, 3, sizeof(cl_int),
                        (void *)&k);
-        size_t global_work_size[] = {elements, elements};
-        clEnqueueNDRangeKernel(cmdQueue, kernel, 2, NULL, global_work_size, NULL, 0, NULL, NULL);
 
-        clEnqueueCopyBuffer(cmdQueue, output_buffer_graph, bufferGraph, 0, 0, sizeof(int) * elements * elements, 0, NULL, NULL);
+        clEnqueueNDRangeKernel(cmdQueue,
+                               kernel,
+                               2,
+                               NULL,
+                               global_work_size,
+                               NULL,
+                               0,
+                               NULL,
+                               NULL);
+
+        clEnqueueCopyBuffer(cmdQueue,
+                            output_buffer_graph,
+                            bufferGraph,
+                            0,
+                            0,
+                            datasize,
+                            0,
+                            NULL,
+                            NULL);
     }
 
     //-----------------------------------------------------
-    // STEP 12: Read the output buffer back to the host
+    // STEP 10: Read the output buffer back to the host
     //-----------------------------------------------------
 
     clEnqueueReadBuffer(cmdQueue,
@@ -446,40 +489,34 @@ int main(int argc, char **argv)
                         NULL,
                         NULL);
 
+    // the value are copied to the output_graph, it should not be null
     if (output_buffer_graph == NULL)
     {
         printf("output_buffer_graph is NULL\n");
     }
 
+    //-----------------------------------------------------
+    // STEP 11: Checking the results with a sequential algorithm
+    //-----------------------------------------------------
     floydWarshall(graph, elements);
 
-    int error_count = 0;
-
-    for (int i = 0; i < elements; i++)
-    {
-        for (int j = 0; j < elements; j++)
-        {
-            if (graph[i * elements + j] != output_graph[i * elements + j])
-            {
-                error_count++;
-            }
-        }
-    }
-
-    printf("Matrix size : %d*%d, Errors  %d\n", elements, elements, error_count);
+    check_results(graph, output_graph, elements);
 
     //-----------------------------------------------------
-    // STEP 13: Release OpenCL resources
+    // STEP 12: Release OpenCL resources
     //-----------------------------------------------------
+
     // Free OpenCL resources
     clReleaseKernel(kernel);
     clReleaseProgram(program);
     clReleaseCommandQueue(cmdQueue);
     clReleaseMemObject(bufferGraph);
+    clReleaseMemObject(output_buffer_graph);
     clReleaseContext(context);
 
     // Free host resources
     free(graph);
+    free(output_graph);
     free(platforms);
     free(devices);
 
