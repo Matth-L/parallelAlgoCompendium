@@ -29,7 +29,7 @@
  ***********************************************/
 void init_graph(int n, int **graph)
 {
-    *graph = (int *)malloc(n * n * sizeof(int));
+    *graph = malloc(n * n * sizeof(int));
     if (*graph == NULL)
     {
         printf("Error allocating memory in init_graph\n");
@@ -510,12 +510,16 @@ int main(int argc, char **argv)
     //-----------------------------------------------------
     // STEP 11: Checking the results with a sequential algorithm
     //-----------------------------------------------------
-    floydWarshall(graph, elements);
 
-    check_results(graph, output_graph, elements);
+    // if the value is too big, we do not test the results
+    if (elements < 1000)
+    {
+        print_graph(output_graph, elements);
+        floydWarshall(graph, elements);
+        check_results(graph, output_graph, elements);
+    }
 
-    print_graph(output_graph, elements);
-
+    printf("Done\n");
     //-----------------------------------------------------
     // STEP 12: Release OpenCL resources
     //-----------------------------------------------------
