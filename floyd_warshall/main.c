@@ -61,7 +61,7 @@ void init_graph(int n, int **graph)
 }
 
 /**********************************************
- * @brief it's the graph from this video :
+ * @brief Build the graph from this video :
  * https://www.youtube.com/watch?v=4OQeCuLYj-4
  *
  * @return int** the matrix that represents the graph
@@ -132,32 +132,25 @@ void print_graph(int *graph, int n)
     }
 }
 
-void check_results(int *graph, int *output_graph, int n)
+/**********************************************
+ * @brief check if the results between two
+ * graphs are the same
+ *
+ * @param graph1
+ * @param graph2
+ * @param n
+ ***********************************************/
+void check_results(int *graph1, int *graph2, int n)
 {
-    int correct = 1;
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n * n; i++)
     {
-        for (int j = 0; j < n; j++)
+        if (graph1[i] != graph2[i])
         {
-            if (graph[i * n + j] != output_graph[i * n + j])
-            {
-                correct = 0;
-                // printf("Mismatch at [%d][%d]: expected %d, got %d\n",
-                //        i,
-                //        j,
-                //        graph[i * n + j],
-                //        output_graph[i * n + j]);
-            }
+            printf("\033[1;31mThe results are incorrect\033[0m\n");
+            return;
         }
     }
-    if (correct)
-    {
-        printf("\033[0;32mThe results are correct\033[0m\n");
-    }
-    else
-    {
-        printf("\033[1;31mThe results are incorrect\033[0m\n");
-    }
+    printf("\033[0;32mThe results are correct\033[0m\n");
 }
 
 /**********************************************
