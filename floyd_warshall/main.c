@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <CL/cl.h>
+#include <time.h>
 
 #define INF 1E9
 
@@ -206,6 +207,7 @@ char *load_program_source(const char *filename)
 
 int main(int argc, char **argv)
 {
+
     // initialize the graph
     int elements = 0;
     int *graph = NULL;
@@ -452,9 +454,13 @@ int main(int argc, char **argv)
     // STEP 9: Set the kernel arguments
     //-----------------------------------------------------
 
+    double start, end;
+
     // Associate the input and output buffers with the
     // kernel using clSetKernelArg()
     printf("Setting kernel arguments\n");
+    printf("starting timer\n");
+    start = clock();
     fflush(stdout);
 
     size_t global_work_size[] = {elements, elements};
@@ -493,6 +499,8 @@ int main(int argc, char **argv)
         clReleaseEvent(copy_event);
     }
 
+    end = clock();
+
     //-----------------------------------------------------
     // STEP 10: Read the output buffer back to the host
     //-----------------------------------------------------
@@ -520,6 +528,7 @@ int main(int argc, char **argv)
     }
 
     printf("Done\n");
+    printf("Time: %f\n", (end - start) / CLOCKS_PER_SEC);
     //-----------------------------------------------------
     // STEP 12: Release OpenCL resources
     //-----------------------------------------------------
