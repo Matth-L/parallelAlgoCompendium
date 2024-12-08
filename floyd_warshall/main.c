@@ -108,6 +108,8 @@ void demo_graph(int **graph)
 
 /**********************************************
  * @brief print the graph
+ * if there is more than 10 nodes, prints
+ * the 5 first and the 5 last nodes
  *
  * @param graph
  * @param n
@@ -116,6 +118,11 @@ void print_graph(int *graph, int n)
 {
     for (int i = 0; i < n; i++)
     {
+        if (i == 5 && n > 10)
+        {
+            printf("...\n");
+            i = n - 5;
+        }
         printf("Node %d: ", i);
         for (int j = 0; j < n; j++)
         {
@@ -135,24 +142,21 @@ void check_results(int *graph, int *output_graph, int n)
             if (graph[i * n + j] != output_graph[i * n + j])
             {
                 correct = 0;
-                printf("Mismatch at [%d][%d]: expected %d, got %d\n",
-                       i,
-                       j,
-                       graph[i * n + j],
-                       output_graph[i * n + j]);
+                // printf("Mismatch at [%d][%d]: expected %d, got %d\n",
+                //        i,
+                //        j,
+                //        graph[i * n + j],
+                //        output_graph[i * n + j]);
             }
         }
     }
     if (correct)
     {
-        printf("The results are correct\n");
+        printf("\033[0;32mThe results are correct\033[0m\n");
     }
     else
     {
-        printf("Graph:\n");
-        print_graph(graph, n);
-        printf("Output Graph:\n");
-        print_graph(output_graph, n);
+        printf("\033[1;31mThe results are incorrect\033[0m\n");
     }
 }
 
@@ -516,6 +520,8 @@ int main(int argc, char **argv)
     floydWarshall(graph, elements);
 
     check_results(graph, output_graph, elements);
+
+    print_graph(output_graph, elements);
 
     //-----------------------------------------------------
     // STEP 12: Release OpenCL resources
