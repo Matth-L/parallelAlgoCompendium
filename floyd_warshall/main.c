@@ -205,6 +205,35 @@ char *load_program_source(const char *filename)
     return source;
 }
 
+/**********************************************
+ * @brief export the adjacency list to a file
+ *
+ * print the size first, then the adjacency list
+ * @param adj_list
+ * @param size
+ * @param filename
+ ***********************************************/
+void export_adj_list(int *adj_list, int size, const char *filename)
+{
+    FILE *file = fopen(filename, "w");
+    if (file == NULL)
+    {
+        printf("Erreur d'ouverture du fichier\n");
+        return;
+    }
+    fprintf(file, "%d\n", size);
+    for (int i = 0; i < size; i++)
+    {
+        fprintf(file, "%d", adj_list[i]);
+        if (i != size - 1)
+        {
+            fprintf(file, ",");
+        }
+    }
+
+    fclose(file);
+}
+
 int main(int argc, char **argv)
 {
 
@@ -525,6 +554,7 @@ int main(int argc, char **argv)
         print_graph(output_graph, elements);
         floydWarshall(graph, elements);
         check_results(graph, output_graph, elements);
+        export_adj_list(output_graph, elements * elements, "adj_list.csv");
     }
 
     printf("Done\n");
