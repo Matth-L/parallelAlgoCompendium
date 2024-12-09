@@ -46,7 +46,12 @@ To test, execute the following command:
 ```bash
 cd floyd_warshall
 make
-./main
+./main <number_of_nodes>
+```
+
+You can also plot with this command : 
+```bash
+make plot
 ```
 
 This code is adapted for my GPU 0, so you may need to change the device type and device number in the code.
